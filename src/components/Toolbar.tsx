@@ -1,8 +1,8 @@
 // Tsubasa (翼) — Toolbar Component (v3 — Manifesto Redesign)
 // Add torrent, pause/resume all, search, global speed display.
-// Settings button moved to sidebar per manifesto.
+// Command palette trigger (Ctrl+K).
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   Plus,
   ArrowDown,
@@ -21,11 +21,13 @@ import { useSearchStore } from "@/stores/search";
 import { formatSpeed } from "@/lib/utils";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import { SearchPanel } from "@/components/SearchPanel";
+import { CommandPalette } from "@/components/CommandPalette";
 import "./Toolbar.css";
 
 export function Toolbar() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
   const [magnetInput, setMagnetInput] = useState("");
   const addTorrent = useTorrentStore((s) => s.addTorrent);
   const torrents = useTorrentStore((s) => s.torrents);
@@ -36,6 +38,18 @@ export function Toolbar() {
 
   const searchOpen = useSearchStore((s) => s.isOpen);
   const setSearchOpen = useSearchStore((s) => s.setOpen);
+
+  // Global Ctrl+K / ⌘+K shortcut
+  useEffect(() => {
+    function handleGlobalKey(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        setCmdPaletteOpen((v) => !v);
+      }
+    }
+    document.addEventListener("keydown", handleGlobalKey);
+    return () => document.removeEventListener("keydown", handleGlobalKey);
+  }, []);
 
   const handleAddMagnet = async () => {
     const source = magnetInput.trim();
@@ -189,13 +203,13 @@ export function Toolbar() {
           )}
         </div>
 
-        {/* Right: Speed pill + density toggle + Ctrl+K */}
+        {/* Right: Speed pill + Ctrl+K */}
         <div className="toolbar__right">
-          {/* Command palette hint */}
+          {/* Command palette trigger */}
           <button
             className="btn-icon"
             title="Command palette (Ctrl+K)"
-            onClick={() => {/* TODO: open command palette */ }}
+            onClick={() => setCmdPaletteOpen(true)}
           >
             <Command size={14} strokeWidth={1.5} />
           </button>
@@ -226,6 +240,13 @@ export function Toolbar() {
 
       {/* Search Panel */}
       {searchOpen && <SearchPanel onClose={() => setSearchOpen(false)} />}
+
+      {/* Command Palette */}
+      <CommandPalette
+        open={cmdPaletteOpen}
+        onClose={() => setCmdPaletteOpen(false)}
+        onOpenSettings={() => setShowSettings(true)}
+      />
     </>
   );
 }
