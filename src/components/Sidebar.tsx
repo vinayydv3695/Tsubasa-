@@ -1,8 +1,8 @@
 // Tsubasa (翼) — Sidebar Component (v3 — Manifesto Redesign)
-// Pure navigation. No counters, no collapsible sections, no clutter.
 // Icon-first layout, collapsible sidebar, glow active indicator.
-// Bottom-anchored: Settings + Stats.
+// Categories section, bottom-anchored Settings + Stats.
 
+import { useState, useMemo } from "react";
 import {
   Download,
   CheckCircle,
@@ -17,9 +17,18 @@ import {
   Zap,
   AlertCircle,
   Pause,
+  Film,
+  Tv,
+  Music,
+  Gamepad2,
+  Monitor,
+  FolderOpen,
 } from "lucide-react";
 import { useTorrentStore } from "@/stores/torrent";
 import { useUIStore } from "@/stores/ui";
+import { useSearchStore } from "@/stores/search";
+import { BUILT_IN_CATEGORIES, getCategoryForTorrent } from "@/stores/categories";
+import { SettingsPanel } from "@/components/SettingsPanel";
 import "./Sidebar.css";
 
 // ─── Types ────────────────────────────────────────────────
@@ -46,13 +55,46 @@ function NavItem({ label, icon, active, collapsed, onClick }: NavItemProps) {
   );
 }
 
+// ─── Category icons ───────────────────────────────────────
+
+const catIcons: Record<string, React.ReactNode> = {
+  Movies: <Film size={16} strokeWidth={1.5} />,
+  "TV Shows": <Tv size={16} strokeWidth={1.5} />,
+  Music: <Music size={16} strokeWidth={1.5} />,
+  Games: <Gamepad2 size={16} strokeWidth={1.5} />,
+  Software: <Monitor size={16} strokeWidth={1.5} />,
+  Other: <FolderOpen size={16} strokeWidth={1.5} />,
+};
+
 // ─── Main Sidebar ─────────────────────────────────────────
 
 export function Sidebar() {
   const filter = useTorrentStore((s) => s.filter);
   const setFilter = useTorrentStore((s) => s.setFilter);
+  const torrents = useTorrentStore((s) => s.torrents);
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
+  const setDetailPanelOpen = useUIStore((s) => s.setDetailPanelOpen);
+  const setSearchOpen = useSearchStore((s) => s.setOpen);
+
+  const [showSettings, setShowSettings] = useState(false);
+
+  // Category counts
+  const torrentList = useMemo(() => Array.from(torrents.values()), [torrents]);
+  const categoryCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    let other = 0;
+    for (const t of torrentList) {
+      const cat = getCategoryForTorrent(t.name);
+      if (cat) map[cat.name] = (map[cat.name] ?? 0) + 1;
+      else other++;
+    }
+    map["Other"] = other;
+    return map;
+  }, [torrentList]);
+
+  // Check if any category has torrents — only show section if there's data
+  const hasCategoryData = torrentList.length > 0;
 
   const navItems = [
     { label: "All", value: "all", icon: <LayoutList size={18} strokeWidth={1.5} /> },
@@ -65,79 +107,115 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="sidebar" data-collapsed={collapsed}>
-      {/* ── Brand header ── */}
-      <div className="sidebar__header">
-        <div className="sidebar__brand">
-          <div className="sidebar__logo">
-            <Zap size={12} color="#fff" strokeWidth={2.5} />
+    <>
+      <aside className="sidebar" data-collapsed={collapsed}>
+        {/* ── Brand header ── */}
+        <div className="sidebar__header">
+          <div className="sidebar__brand">
+            <div className="sidebar__logo">
+              <Zap size={12} color="#fff" strokeWidth={2.5} />
+            </div>
+            <span className="sidebar__wordmark">Tsubasa</span>
           </div>
-          <span className="sidebar__wordmark">Tsubasa</span>
+          <button
+            className="sidebar__toggle sidebar__toggle--collapse"
+            onClick={toggleSidebar}
+            aria-label="Collapse sidebar"
+          >
+            <ChevronLeft size={14} />
+          </button>
         </div>
-        <button
-          className="sidebar__toggle sidebar__toggle--collapse"
-          onClick={toggleSidebar}
-          aria-label="Collapse sidebar"
-        >
-          <ChevronLeft size={14} />
-        </button>
-      </div>
 
-      {/* ── Navigation ── */}
-      <nav className="sidebar__nav">
-        {navItems.map((item) => (
+        {/* ── Navigation ── */}
+        <nav className="sidebar__nav">
+          {/* Status filters */}
+          {navItems.map((item) => (
+            <NavItem
+              key={item.value}
+              label={item.label}
+              icon={item.icon}
+              active={filter === item.value}
+              collapsed={collapsed}
+              onClick={() => setFilter(item.value as any)}
+            />
+          ))}
+
+          {/* Categories section — only when expanded and data exists */}
+          {!collapsed && hasCategoryData && (
+            <>
+              <div className="sidebar__section-label">Categories</div>
+              {BUILT_IN_CATEGORIES.map((cat) => {
+                const count = categoryCounts[cat.name] ?? 0;
+                if (count === 0) return null;
+                return (
+                  <NavItem
+                    key={cat.name}
+                    label={cat.name}
+                    icon={catIcons[cat.name] ?? <FolderOpen size={16} strokeWidth={1.5} />}
+                    active={filter === `cat:${cat.name}`}
+                    collapsed={collapsed}
+                    onClick={() => setFilter(`cat:${cat.name}` as any)}
+                  />
+                );
+              })}
+              {(categoryCounts["Other"] ?? 0) > 0 && (
+                <NavItem
+                  label="Other"
+                  icon={<FolderOpen size={16} strokeWidth={1.5} />}
+                  active={filter === "cat:Other"}
+                  collapsed={collapsed}
+                  onClick={() => setFilter("cat:Other" as any)}
+                />
+              )}
+            </>
+          )}
+
+          {/* Search */}
+          <div className="sidebar__section-label">Tools</div>
           <NavItem
-            key={item.value}
-            label={item.label}
-            icon={item.icon}
-            active={filter === item.value}
+            label="Search"
+            icon={<Search size={18} strokeWidth={1.5} />}
+            active={false}
             collapsed={collapsed}
-            onClick={() => setFilter(item.value as any)}
+            onClick={() => setSearchOpen(true)}
           />
-        ))}
 
-        {/* Search */}
-        <div className="sidebar__section-label">Search</div>
-        <NavItem
-          label="Search"
-          icon={<Search size={18} strokeWidth={1.5} />}
-          active={filter === "search" as any}
-          collapsed={collapsed}
-          onClick={() => setFilter("search" as any)}
-        />
+          {/* Spacer pushes bottom items down */}
+          <div className="sidebar__spacer" />
+        </nav>
 
-        {/* Spacer pushes bottom items down */}
-        <div className="sidebar__spacer" />
-      </nav>
+        {/* ── Bottom-anchored items ── */}
+        <div className="sidebar__bottom">
+          <NavItem
+            label="Stats"
+            icon={<BarChart3 size={18} strokeWidth={1.5} />}
+            active={false}
+            collapsed={collapsed}
+            onClick={() => setDetailPanelOpen(true)}
+          />
+          <NavItem
+            label="Settings"
+            icon={<Settings size={18} strokeWidth={1.5} />}
+            active={showSettings}
+            collapsed={collapsed}
+            onClick={() => setShowSettings(!showSettings)}
+          />
+        </div>
 
-      {/* ── Bottom-anchored items ── */}
-      <div className="sidebar__bottom">
-        <NavItem
-          label="Stats"
-          icon={<BarChart3 size={18} strokeWidth={1.5} />}
-          active={false}
-          collapsed={collapsed}
-          onClick={() => {/* TODO: open stats panel */ }}
-        />
-        <NavItem
-          label="Settings"
-          icon={<Settings size={18} strokeWidth={1.5} />}
-          active={false}
-          collapsed={collapsed}
-          onClick={() => {/* TODO: open settings modal */ }}
-        />
-      </div>
+        {/* ── Expand toggle (collapsed state) ── */}
+        <div className="sidebar__expand">
+          <button
+            className="sidebar__toggle"
+            onClick={toggleSidebar}
+            aria-label="Expand sidebar"
+          >
+            <ChevronRight size={14} />
+          </button>
+        </div>
+      </aside>
 
-      {/* ── Expand toggle (collapsed state) ── */}
-      <div className="sidebar__expand">
-        <button
-          className="sidebar__toggle"
-          onClick={toggleSidebar}
-          aria-label="Expand sidebar"
-        >
-          <ChevronRight size={14} />
-        </button>
-      </div>
-    </aside>
+      {/* Settings Panel — rendered outside sidebar to overlay properly */}
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+    </>
   );
 }
