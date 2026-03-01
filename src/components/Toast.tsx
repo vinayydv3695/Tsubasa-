@@ -1,9 +1,10 @@
-// Tsubasa — Toast Notification Component
-// Renders toast notifications in the bottom-right corner.
+// Tsubasa (翼) — Toast Notification Component (v3 — Manifesto Redesign)
+// Slide-in from right, spring easing, max 3 visible, CSS class-based.
 
 import { AnimatePresence, motion } from "framer-motion";
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from "lucide-react";
 import { useToastStore, type ToastType } from "@/stores/toast";
+import "./Toast.css";
 
 function toastAccent(type: ToastType): string {
   switch (type) {
@@ -33,94 +34,59 @@ function toastIcon(type: ToastType) {
   }
 }
 
+// Manifesto spec: entrance translateX(40px) → 0 with spring, exit fast
+const toastVariants = {
+  initial: { opacity: 0, x: 40, scale: 0.97 },
+  animate: { opacity: 1, x: 0, scale: 1 },
+  exit: { opacity: 0, x: 40, scale: 0.97 },
+};
+
+const toastTransition = {
+  type: "spring" as const,
+  stiffness: 400,
+  damping: 30,
+  mass: 0.8,
+};
+
 export function ToastContainer() {
   const toasts = useToastStore((s) => s.toasts);
   const removeToast = useToastStore((s) => s.removeToast);
 
+  // Max 3 visible per manifesto
+  const visibleToasts = toasts.slice(-3);
+
   return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: 44,
-        right: 16,
-        zIndex: 60,
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-        pointerEvents: "none",
-      }}
-    >
+    <div className="toast-container">
       <AnimatePresence mode="popLayout">
-        {toasts.map((toast) => {
+        {visibleToasts.map((toast) => {
           const accent = toastAccent(toast.type);
           const iconBg = toastIconBg(toast.type);
           return (
             <motion.div
               key={toast.id}
-              initial={{ opacity: 0, x: 60, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 60, scale: 0.95 }}
-              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-              style={{
-                pointerEvents: "auto",
-                width: 340,
-                background: "var(--surface)",
-                border: "1px solid var(--line)",
-                borderLeft: `3px solid ${accent}`,
-                borderRadius: 10,
-                boxShadow: "var(--shadow-lg)",
-                backdropFilter: "blur(12px)",
-              }}
+              variants={toastVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={toastTransition}
+              className="toast"
+              style={{ borderLeft: `3px solid ${accent}` }}
             >
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 14px" }}>
-                {/* Icon with soft-bg pill */}
-                <div style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 8,
-                  background: iconBg,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}>
+              <div className="toast__body">
+                <div className="toast__icon-wrap" style={{ background: iconBg }}>
                   {toastIcon(toast.type)}
                 </div>
 
-                <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
-                  <p style={{ fontSize: 12, fontWeight: 500, color: "var(--fg)" }}>
-                    {toast.title}
-                  </p>
+                <div className="toast__content">
+                  <p className="toast__title">{toast.title}</p>
                   {toast.message && (
-                    <p style={{ fontSize: 11, color: "var(--fg-3)", marginTop: 2, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
-                      {toast.message}
-                    </p>
+                    <p className="toast__message">{toast.message}</p>
                   )}
                 </div>
 
                 <button
                   onClick={() => removeToast(toast.id)}
-                  className="transition-colors-fast"
-                  style={{
-                    flexShrink: 0,
-                    padding: 3,
-                    borderRadius: 5,
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
-                    color: "var(--fg-3)",
-                    display: "flex",
-                    alignItems: "center",
-                    marginTop: 1,
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background = "var(--muted)";
-                    (e.currentTarget as HTMLButtonElement).style.color = "var(--fg-2)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-                    (e.currentTarget as HTMLButtonElement).style.color = "var(--fg-3)";
-                  }}
+                  className="toast__close"
                 >
                   <X size={12} />
                 </button>
