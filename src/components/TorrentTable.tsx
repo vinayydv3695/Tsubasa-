@@ -59,11 +59,11 @@ function stateIcon(state: TorrentState) {
   }
 }
 
-type BadgeVariant = "green" | "amber" | "red" | "muted";
+type BadgeVariant = "green" | "amber" | "red" | "muted" | "accent";
 
 function stateBadge(state: TorrentState) {
   const map: Record<TorrentState, { label: string; variant: BadgeVariant }> = {
-    downloading: { label: "Downloading", variant: "green" },
+    downloading: { label: "Downloading", variant: "accent" },
     seeding: { label: "Seeding", variant: "green" },
     completed: { label: "Completed", variant: "green" },
     paused: { label: "Paused", variant: "muted" },
@@ -99,7 +99,7 @@ function ProgressBar({ progress, state }: { progress: number; state: TorrentStat
         width: "100%",
         height: 3,
         borderRadius: 99,
-        background: "var(--overlay)",
+        background: "var(--muted)",
         overflow: "visible",
         marginTop: 4,
       }}
@@ -289,16 +289,16 @@ function ContextMenu({ x, y, torrent, onClose }: ContextMenuProps) {
       ref={menuRef}
       style={{
         position: "fixed",
-        zIndex: 50,
+        zIndex: 30,
         left: x,
         top: y,
-        minWidth: 196,
+        minWidth: 180,
         background: "var(--surface)",
         border: "1px solid var(--line-strong)",
-        borderRadius: 10,
+        borderRadius: 8,
         boxShadow: "var(--shadow-lg)",
-        padding: "4px 0",
-        backdropFilter: "blur(8px)",
+        padding: 4,
+        backdropFilter: "blur(12px) saturate(160%)",
       }}
     >
       {items.map((item, i) => {
@@ -471,7 +471,7 @@ export function TorrentTable() {
                         fontWeight: 600,
                         color: "var(--fg-3)",
                         textTransform: "uppercase",
-                        letterSpacing: "0.6px",
+                        letterSpacing: "0.5px",
                         padding: 0,
                       }}
                       onClick={header.column.getToggleSortingHandler()}
