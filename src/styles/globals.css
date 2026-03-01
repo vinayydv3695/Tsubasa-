@@ -1,0 +1,480 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════
+   Tsubasa (翼) — Design System & Theme Engine
+   3 themes: Deep Black (default), Rosé Pine, Clean White
+   Premium. Clean. Calm but powerful.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Theme: Deep Black ──────────────────────────────────── */
+
+[data-theme="black"], :root {
+  --base: #09090b;
+  --surface: #111114;
+  --overlay: #18181c;
+  --muted: #222228;
+  --subtle: #2c2c34;
+
+  --fg: #ededf0;
+  --fg-2: #a0a0ab;
+  --fg-3: #65656f;
+  --fg-muted: #404048;
+
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-soft: rgba(99, 102, 241, 0.10);
+  --accent-glow: rgba(99, 102, 241, 0.25);
+
+  --line: rgba(255, 255, 255, 0.06);
+  --line-subtle: rgba(255, 255, 255, 0.03);
+  --line-strong: rgba(255, 255, 255, 0.10);
+
+  --green: #22c55e;
+  --green-soft: rgba(34, 197, 94, 0.12);
+  --green-glow: rgba(34, 197, 94, 0.2);
+  --amber: #f59e0b;
+  --amber-soft: rgba(245, 158, 11, 0.12);
+  --red: #ef4444;
+  --red-soft: rgba(239, 68, 68, 0.12);
+  --red-glow: rgba(239, 68, 68, 0.2);
+  --blue: #3b82f6;
+  --blue-soft: rgba(59, 130, 246, 0.12);
+
+  --cloud: #3b82f6;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 1px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0,0,0,0.5);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.18);
+
+  --gradient-surface: linear-gradient(180deg, #151518 0%, #111114 100%);
+  --gradient-accent: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+}
+
+/* ─── Theme: Rosé Pine ───────────────────────────────────── */
+
+[data-theme="rose"] {
+  --base: #191724;
+  --surface: #1f1d2e;
+  --overlay: #26233a;
+  --muted: #2a2740;
+  --subtle: #312e48;
+
+  --fg: #e0def4;
+  --fg-2: #908caa;
+  --fg-3: #6e6a86;
+  --fg-muted: #524f67;
+
+  --accent: #c4a7e7;
+  --accent-hover: #d4bff7;
+  --accent-soft: rgba(196, 167, 231, 0.12);
+  --accent-glow: rgba(196, 167, 231, 0.25);
+
+  --line: rgba(224, 222, 244, 0.07);
+  --line-subtle: rgba(224, 222, 244, 0.04);
+  --line-strong: rgba(224, 222, 244, 0.12);
+
+  --green: #9ccfd8;
+  --green-soft: rgba(156, 207, 216, 0.12);
+  --green-glow: rgba(156, 207, 216, 0.2);
+  --amber: #f6c177;
+  --amber-soft: rgba(246, 193, 119, 0.12);
+  --red: #eb6f92;
+  --red-soft: rgba(235, 111, 146, 0.12);
+  --red-glow: rgba(235, 111, 146, 0.2);
+  --blue: #31748f;
+  --blue-soft: rgba(49, 116, 143, 0.12);
+
+  --cloud: #31748f;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0,0,0,0.4);
+  --shadow-glow: 0 0 20px rgba(196, 167, 231, 0.18);
+
+  --gradient-surface: linear-gradient(180deg, #221f30 0%, #1f1d2e 100%);
+  --gradient-accent: linear-gradient(135deg, #c4a7e7 0%, #d4bff7 100%);
+}
+
+/* ─── Theme: Clean White ─────────────────────────────────── */
+
+[data-theme="light"] {
+  --base: #f6f6f9;
+  --surface: #ffffff;
+  --overlay: #f0f0f5;
+  --muted: #e8e8ef;
+  --subtle: #d8d8e3;
+
+  --fg: #1a1a2e;
+  --fg-2: #4a4a66;
+  --fg-3: #7a7a99;
+  --fg-muted: #aeaec5;
+
+  --accent: #4f46e5;
+  --accent-hover: #6366f1;
+  --accent-soft: rgba(79, 70, 229, 0.08);
+  --accent-glow: rgba(79, 70, 229, 0.20);
+
+  --line: rgba(0, 0, 0, 0.07);
+  --line-subtle: rgba(0, 0, 0, 0.04);
+  --line-strong: rgba(0, 0, 0, 0.12);
+
+  --green: #16a34a;
+  --green-soft: rgba(22, 163, 74, 0.10);
+  --green-glow: rgba(22, 163, 74, 0.15);
+  --amber: #d97706;
+  --amber-soft: rgba(217, 119, 6, 0.10);
+  --red: #dc2626;
+  --red-soft: rgba(220, 38, 38, 0.10);
+  --red-glow: rgba(220, 38, 38, 0.15);
+  --blue: #2563eb;
+  --blue-soft: rgba(37, 99, 235, 0.10);
+
+  --cloud: #2563eb;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.10), 0 1px 4px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-glow: 0 0 20px rgba(79, 70, 229, 0.12);
+
+  --gradient-surface: linear-gradient(180deg, #ffffff 0%, #f8f8fc 100%);
+  --gradient-accent: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+}
+
+/* ─── Tailwind v4 Theme Registration ─────────────────────── */
+
+@theme {
+  /* Surfaces */
+  --color-base: var(--base);
+  --color-surface: var(--surface);
+  --color-overlay: var(--overlay);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+
+  /* Text */
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-fg-muted: var(--fg-muted);
+
+  /* Accent */
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+
+  /* Borders */
+  --color-line: var(--line);
+  --color-line-subtle: var(--line-subtle);
+  --color-line-strong: var(--line-strong);
+
+  /* Status */
+  --color-green: var(--green);
+  --color-green-soft: var(--green-soft);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+  --color-red: var(--red);
+  --color-red-soft: var(--red-soft);
+  --color-blue: var(--blue);
+  --color-blue-soft: var(--blue-soft);
+
+  /* Cloud */
+  --color-cloud: var(--cloud);
+
+  /* Shadows */
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-glow: var(--shadow-glow);
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-full: 9999px;
+
+  /* Font sizes */
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 20px;
+  --text-3xl: 24px;
+}
+
+/* ─── Base Styles ────────────────────────────────────────── */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--fg);
+  background-color: var(--base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Theme transitions ──────────────────────────────────── */
+
+*, *::before, *::after {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 100ms ease,
+    box-shadow 180ms ease;
+}
+
+/* But NOT transitions on transforms / layout (would break animations) */
+.no-theme-transition,
+.no-theme-transition * {
+  transition: none !important;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--subtle);
+}
+
+/* ─── Selection ──────────────────────────────────────────── */
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--fg);
+}
+
+/* ─── Transitions ────────────────────────────────────────── */
+
+.transition-colors-fast {
+  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease, opacity 120ms ease !important;
+}
+
+.transition-theme {
+  transition: color 200ms ease, background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease, opacity 200ms ease !important;
+}
+
+/* ─── Mono data values ───────────────────────────────────── */
+
+.font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', ui-monospace, monospace;
+}
+
+/* ─── Focus visible ring ─────────────────────────────────── */
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ─── Drag region for Tauri window ───────────────────────── */
+
+[data-tauri-drag-region] {
+  -webkit-app-region: drag;
+}
+
+[data-tauri-drag-region] button,
+[data-tauri-drag-region] input,
+[data-tauri-drag-region] a {
+  -webkit-app-region: no-drag;
+}
+
+/* ─── Glass utility ──────────────────────────────────────── */
+
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid var(--line);
+}
+
+/* ─── Badge utilities ────────────────────────────────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.badge-green  { background: var(--green-soft);  color: var(--green);  }
+.badge-red    { background: var(--red-soft);    color: var(--red);    }
+.badge-amber  { background: var(--amber-soft);  color: var(--amber);  }
+.badge-accent { background: var(--accent-soft); color: var(--accent); }
+.badge-muted  { background: var(--muted);       color: var(--fg-2);   }
+.badge-blue   { background: var(--blue-soft);   color: var(--blue);   }
+
+/* ─── Status dot pulse ───────────────────────────────────── */
+
+.pulse-green {
+  position: relative;
+}
+.pulse-green::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: var(--green);
+  opacity: 0.4;
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 0.4; }
+  70%  { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* ─── Glow progress bar ──────────────────────────────────── */
+
+.progress-glow-accent {
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+.progress-glow-green {
+  box-shadow: 0 0 6px var(--green-glow);
+}
+
+/* ─── Gradient text ──────────────────────────────────────── */
+
+.text-gradient-accent {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Tab underline indicator ────────────────────────────── */
+
+.tab-indicator {
+  position: relative;
+}
+.tab-indicator[data-active="true"]::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+  transition: none;
+}
+
+/* ─── Sidebar active left bar ────────────────────────────── */
+
+.nav-item-active {
+  position: relative;
+}
+.nav-item-active::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 14px;
+  background: var(--accent);
+  border-radius: 0 2px 2px 0;
+}
+
+/* ─── Button base ────────────────────────────────────────── */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  background: var(--gradient-accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.08) inset;
+  transition: opacity 120ms ease, transform 120ms ease, box-shadow 120ms ease !important;
+}
+.btn-primary:hover {
+  opacity: 0.92;
+  box-shadow: 0 2px 8px var(--accent-glow), 0 0 0 1px rgba(255,255,255,0.12) inset;
+}
+.btn-primary:active {
+  transform: translateY(1px);
+  opacity: 0.85;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  background: var(--overlay);
+  color: var(--fg-2);
+  font-size: 12px;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease !important;
+}
+.btn-ghost:hover {
+  background: var(--muted);
+  color: var(--fg);
+  border-color: var(--line-strong);
+}
+
+/* ─── Input ──────────────────────────────────────────────── */
+
+.input-base {
+  width: 100%;
+  padding: 7px 12px;
+  border-radius: var(--radius-lg);
+  background: var(--overlay);
+  border: 1px solid var(--line);
+  color: var(--fg);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease !important;
+}
+
+.input-base::placeholder {
+  color: var(--fg-3);
+}
+
+.input-base:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
