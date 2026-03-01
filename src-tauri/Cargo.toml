@@ -58,3 +58,19 @@ sha1 = "0.10"
 hex = "0.4"
 dirs = "6"
 urlencoding = "2"
+
+# ── Build Profiles ───────────────────────────────────────────
+
+# Optimize all dependencies even in dev builds.
+# This massively reduces compile time on incremental rebuilds
+# and makes librqbit/tokio/reqwest run at near-release speed.
+# The tsubasa_lib crate itself stays at opt-level 0 for fast compiles + debug info.
+[profile.dev.package."*"]
+opt-level = 2
+
+# Release build: full optimization, LTO for smaller binary, strip debug symbols.
+[profile.release]
+lto = "thin"
+strip = true
+codegen-units = 1
+opt-level = 3
