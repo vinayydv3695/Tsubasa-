@@ -151,6 +151,7 @@ fn is_transient_api_message(msg: &str) -> bool {
         || lower.contains("service unavailable")
         || lower.contains("bad gateway")
         || lower.contains("internal server error")
+        || lower.contains("database_error")
         || lower.contains("eof")
         || lower.contains("dns")
 }
