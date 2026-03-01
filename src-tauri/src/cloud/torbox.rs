@@ -41,6 +41,8 @@ struct CreateTorrentEnvelope {
     data: Option<CreateTorrentData>,
 }
 
+/// Torbox torrent info from the /torrents/mylist endpoint.
+/// Serde ignores unknown fields by default, so we only list what we need.
 #[derive(Debug, Deserialize)]
 struct TorboxTorrentInfo {
     #[allow(dead_code)]
@@ -51,16 +53,32 @@ struct TorboxTorrentInfo {
     name: Option<String>,
     download_state: Option<String>,
     progress: Option<f64>,
+    #[allow(dead_code)]
     size: Option<u64>,
+    #[serde(default)]
     files: Option<Vec<TorboxFile>>,
 }
 
+/// Individual file inside a Torbox torrent.
+/// The API returns both `name` (full path) and `short_name` (filename only).
+/// We keep them as separate fields — using `#[serde(alias)]` would cause
+/// a "duplicate field" error since both keys are present in the response.
 #[derive(Debug, Deserialize)]
 struct TorboxFile {
     id: i64,
-    #[serde(alias = "short_name")]
     name: Option<String>,
+    short_name: Option<String>,
     size: Option<u64>,
+}
+
+impl TorboxFile {
+    /// Returns the best display name: prefer short_name, fall back to name.
+    fn display_name(&self) -> String {
+        self.short_name
+            .clone()
+            .or_else(|| self.name.clone())
+            .unwrap_or_else(|| format!("file_{}", self.id))
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -383,10 +401,7 @@ impl DebridProvider for TorboxProvider {
             let download_url: String = Self::parse_response(dl_resp).await?;
 
             links.push(DirectLink {
-                filename: file
-                    .name
-                    .clone()
-                    .unwrap_or_else(|| format!("file_{}", file.id)),
+                filename: file.display_name(),
                 url: download_url,
                 size_bytes: file.size.unwrap_or(0),
             });
