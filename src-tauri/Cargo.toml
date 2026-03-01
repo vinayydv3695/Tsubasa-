@@ -1,0 +1,60 @@
+[package]
+name = "tsubasa"
+version = "0.1.0"
+description = "Tsubasa (翼) — Modern desktop BitTorrent client"
+authors = ["Tsubasa Contributors"]
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "tsubasa_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-shell = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-updater = "2"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+
+# BitTorrent engine
+librqbit = "8"
+
+# Database
+rusqlite = { version = "0.33", features = ["bundled"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json", "stream", "multipart"] }
+futures-util = "0.3"
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-appender = "0.2"
+
+# Utilities
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+url = { version = "2", features = ["serde"] }
+parking_lot = "0.12"
+async-trait = "0.1"
+sha1 = "0.10"
+hex = "0.4"
+dirs = "6"
+urlencoding = "2"

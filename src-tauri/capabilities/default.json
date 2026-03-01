@@ -1,0 +1,14 @@
+{
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "shell:allow-open",
+    "dialog:default",
+    "notification:default",
+    "fs:default",
+    "core:event:default",
+    "updater:default"
+  ]
+}
