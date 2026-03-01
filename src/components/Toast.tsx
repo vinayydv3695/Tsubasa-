@@ -41,9 +41,9 @@ export function ToastContainer() {
     <div
       style={{
         position: "fixed",
-        bottom: 40,
+        bottom: 44,
         right: 16,
-        zIndex: 100,
+        zIndex: 60,
         display: "flex",
         flexDirection: "column",
         gap: 8,
@@ -57,27 +57,27 @@ export function ToastContainer() {
           return (
             <motion.div
               key={toast.id}
-              initial={{ opacity: 0, x: 48, scale: 0.94 }}
+              initial={{ opacity: 0, x: 60, scale: 0.95 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 48, scale: 0.94 }}
-              transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+              exit={{ opacity: 0, x: 60, scale: 0.95 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
               style={{
                 pointerEvents: "auto",
-                width: 320,
+                width: 340,
                 background: "var(--surface)",
-                border: "1px solid var(--line-strong)",
+                border: "1px solid var(--line)",
                 borderLeft: `3px solid ${accent}`,
                 borderRadius: 10,
                 boxShadow: "var(--shadow-lg)",
                 backdropFilter: "blur(12px)",
               }}
             >
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 12px" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 14px" }}>
                 {/* Icon with soft-bg pill */}
                 <div style={{
                   width: 28,
                   height: 28,
-                  borderRadius: 7,
+                  borderRadius: 8,
                   background: iconBg,
                   display: "flex",
                   alignItems: "center",
