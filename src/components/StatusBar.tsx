@@ -34,7 +34,7 @@ export function StatusBar() {
   return (
     <div
       style={{
-        height: 26,
+        height: 28,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -49,6 +49,7 @@ export function StatusBar() {
         {/* Engine status dot */}
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
           <span
+            className={engineReady ? "pulse-green" : undefined}
             style={{
               width: 6,
               height: 6,
@@ -63,7 +64,7 @@ export function StatusBar() {
           </span>
         </div>
 
-        <span style={{ fontSize: 11, color: "var(--fg-3)", fontFamily: "'JetBrains Mono', monospace" }}>
+        <span style={{ fontSize: 11, color: "var(--fg-3)", fontFamily: "'JetBrains Mono', monospace", fontVariantNumeric: "tabular-nums" }}>
           {torrentCount} torrents
         </span>
 
@@ -75,6 +76,7 @@ export function StatusBar() {
             padding: "0 6px",
             borderRadius: 99,
             fontFamily: "'JetBrains Mono', monospace",
+            fontVariantNumeric: "tabular-nums",
           }}>
             {activeTorrents} active
           </span>
