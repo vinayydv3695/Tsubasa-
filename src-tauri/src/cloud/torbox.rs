@@ -327,13 +327,23 @@ impl DebridProvider for TorboxProvider {
                 source: CloudError::ApiRequest(format!("Request failed: {e}")),
             })?;
 
-        let info: TorboxTorrentInfo = Self::parse_response(resp).await?;
+        // Parse as raw JSON Value to avoid struct deserialization failures
+        // when the API adds/changes fields.
+        let data: serde_json::Value = Self::parse_response(resp).await?;
 
-        let status = match info.download_state.as_deref() {
+        let download_state = data
+            .get("download_state")
+            .and_then(|v| v.as_str());
+        let progress = data
+            .get("progress")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
+
+        let status = match download_state {
             Some("cached") => CloudStatus::Cached,
             Some("completed" | "uploading") => CloudStatus::Completed,
             Some("downloading" | "metaDL" | "compressing") => CloudStatus::Downloading {
-                progress: info.progress.unwrap_or(0.0),
+                progress,
             },
             Some("queued" | "stalled (no seeds)") => CloudStatus::Queued,
             Some("error") | Some("dead") => CloudStatus::Failed {
@@ -370,8 +380,14 @@ impl DebridProvider for TorboxProvider {
                 source: CloudError::ApiRequest(format!("Request failed: {e}")),
             })?;
 
-        let info: TorboxTorrentInfo = Self::parse_response(info_resp).await?;
-        let files = info.files.unwrap_or_default();
+        // Parse as raw JSON Value for resilience against API field changes
+        let data: serde_json::Value = Self::parse_response(info_resp).await?;
+
+        let files = data
+            .get("files")
+            .and_then(|v| v.as_array())
+            .cloned()
+            .unwrap_or_default();
 
         if files.is_empty() {
             return Err(TsubasaError::Cloud {
@@ -382,10 +398,22 @@ impl DebridProvider for TorboxProvider {
 
         // Request a download link for each file
         let mut links = Vec::with_capacity(files.len());
-        for file in &files {
+        for file_val in &files {
+            let file_id = file_val.get("id").and_then(|v| v.as_i64()).unwrap_or(0);
+
+            // Prefer short_name, fall back to name
+            let filename = file_val
+                .get("short_name")
+                .and_then(|v| v.as_str())
+                .or_else(|| file_val.get("name").and_then(|v| v.as_str()))
+                .unwrap_or("unknown_file")
+                .to_string();
+
+            let size = file_val.get("size").and_then(|v| v.as_u64()).unwrap_or(0);
+
             let dl_url = format!(
                 "{}/torrents/requestdl?token={}&torrent_id={}&file_id={}&zip_link=false",
-                self.base_url, api_key, id.0, file.id
+                self.base_url, api_key, id.0, file_id
             );
 
             let dl_resp = self
@@ -401,9 +429,9 @@ impl DebridProvider for TorboxProvider {
             let download_url: String = Self::parse_response(dl_resp).await?;
 
             links.push(DirectLink {
-                filename: file.display_name(),
+                filename,
                 url: download_url,
-                size_bytes: file.size.unwrap_or(0),
+                size_bytes: size,
             });
         }
 
