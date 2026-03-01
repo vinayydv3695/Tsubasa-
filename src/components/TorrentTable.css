@@ -1,0 +1,250 @@
+/* Tsubasa — TorrentTable Styles */
+
+.torrent-table {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+}
+
+.torrent-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* ── Header ── */
+
+.torrent-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--surface);
+}
+
+.torrent-table thead tr {
+    border-bottom: 1px solid var(--line);
+}
+
+.torrent-table th {
+    padding: var(--space-2) var(--space-3);
+    text-align: left;
+    user-select: none;
+}
+
+.torrent-table__header-btn {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: var(--text-2xs);
+    font-weight: 600;
+    color: var(--fg-3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0;
+    transition: color var(--duration-instant) var(--ease-out);
+}
+
+.torrent-table__header-btn:hover {
+    color: var(--fg-2);
+}
+
+/* ── Rows ── */
+
+.torrent-table tbody tr {
+    cursor: pointer;
+    border-bottom: 1px solid var(--line-subtle);
+    background: transparent;
+    transition: background-color var(--duration-instant) var(--ease-out);
+}
+
+.torrent-table tbody tr:hover {
+    background: var(--muted);
+}
+
+.torrent-table tbody tr[data-selected="true"] {
+    background: var(--accent-soft);
+}
+
+.torrent-table td {
+    padding: var(--space-2) var(--space-3);
+    vertical-align: middle;
+    height: var(--row-height);
+    font-size: var(--row-font);
+}
+
+/* ── Name cell ── */
+
+.torrent-table__name-cell {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+}
+
+.torrent-table__name-icon {
+    padding-top: 1px;
+    flex-shrink: 0;
+}
+
+.torrent-table__name-content {
+    min-width: 0;
+    flex: 1;
+}
+
+.torrent-table__name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.torrent-table__name-text {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--fg);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── Data cell (mono) ── */
+
+.torrent-table__mono {
+    font-size: var(--text-xs);
+    color: var(--fg-2);
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-variant-numeric: tabular-nums;
+}
+
+.torrent-table__mono--muted {
+    color: var(--fg-3);
+}
+
+.torrent-table__mono--green {
+    color: var(--green);
+}
+
+.torrent-table__mono--accent {
+    color: var(--accent);
+}
+
+/* ── Progress bar ── */
+
+.torrent-table__progress {
+    width: 100%;
+    height: 3px;
+    border-radius: 99px;
+    background: var(--muted);
+    overflow: visible;
+    margin-top: 4px;
+}
+
+.torrent-table__progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 300ms ease;
+}
+
+.torrent-table__progress-fill--accent {
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent-glow);
+}
+
+.torrent-table__progress-fill--green {
+    background: var(--green);
+    box-shadow: 0 0 5px var(--green-glow);
+}
+
+.torrent-table__progress-fill--red {
+    background: var(--red);
+    box-shadow: 0 0 5px var(--red-glow);
+}
+
+.torrent-table__progress-fill--muted {
+    background: var(--fg-muted);
+}
+
+/* ── Context menu ── */
+
+.context-menu {
+    position: fixed;
+    z-index: 30;
+    min-width: 180px;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 4px;
+    backdrop-filter: blur(12px) saturate(160%);
+}
+
+.context-menu__item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: var(--text-sm);
+    color: var(--fg-2);
+    text-align: left;
+    border-radius: var(--radius-sm);
+    transition: background var(--duration-instant) var(--ease-out),
+        color var(--duration-instant) var(--ease-out);
+}
+
+.context-menu__item:hover {
+    background: var(--muted);
+    color: var(--fg);
+}
+
+.context-menu__item--danger {
+    color: var(--red);
+}
+
+.context-menu__item--danger:hover {
+    background: var(--red-soft);
+    color: var(--red);
+}
+
+.context-menu__separator {
+    margin: 4px 0;
+    height: 1px;
+    background: var(--line);
+}
+
+/* ── Empty state ── */
+
+.torrent-table__empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+}
+
+.torrent-table__empty-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-2xl);
+    background: var(--overlay);
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.torrent-table__empty-title {
+    font-size: var(--text-base);
+    font-weight: 500;
+    color: var(--fg-2);
+}
+
+.torrent-table__empty-subtitle {
+    font-size: var(--text-sm);
+    color: var(--fg-3);
+    margin-top: 4px;
+}

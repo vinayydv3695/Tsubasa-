@@ -1,5 +1,6 @@
-// Tsubasa — Toolbar Component
-// Add torrent (magnet or file), pause/resume all, search, settings access.
+// Tsubasa (翼) — Toolbar Component (v3 — Manifesto Redesign)
+// Add torrent, pause/resume all, search, global speed display.
+// Settings button moved to sidebar per manifesto.
 
 import React, { useState, useCallback } from "react";
 import {
@@ -8,10 +9,10 @@ import {
   ArrowUp,
   PauseCircle,
   PlayCircle,
-  Settings,
   FileUp,
   Search,
   X,
+  Command,
 } from "lucide-react";
 import { open as dialogOpen } from "@tauri-apps/plugin-dialog";
 import { useTorrentStore } from "@/stores/torrent";
@@ -20,6 +21,7 @@ import { useSearchStore } from "@/stores/search";
 import { formatSpeed } from "@/lib/utils";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import { SearchPanel } from "@/components/SearchPanel";
+import "./Toolbar.css";
 
 export function Toolbar() {
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -98,85 +100,67 @@ export function Toolbar() {
 
   return (
     <>
-      <div
-        data-tauri-drag-region
-        style={{
-          height: 44,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 12px",
-          borderBottom: "1px solid var(--line)",
-          background: "var(--surface)",
-          flexShrink: 0,
-          gap: 8,
-        }}
-      >
+      <div className="toolbar">
         {/* Left: Actions */}
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-
+        <div className="toolbar__left">
           {/* Add torrent — primary */}
           <button
             onClick={() => setShowAddDialog(!showAddDialog)}
-            className="btn-primary transition-colors-fast"
-            style={{ height: 30, padding: "0 12px", fontSize: 12 }}
+            className="btn-primary"
+            style={{ height: 30, padding: "0 12px" }}
           >
             <Plus size={13} strokeWidth={2.5} />
-            Add
+            <span className="sidebar-label">Add</span>
           </button>
 
           {/* Open .torrent file */}
           <button
             onClick={handleAddFile}
-            className="btn-ghost transition-colors-fast"
+            className="btn-icon"
             title="Open .torrent file"
-            style={{ height: 30, padding: "0 9px", fontSize: 12 }}
           >
-            <FileUp size={13} />
+            <FileUp size={15} strokeWidth={1.5} />
           </button>
 
-          {/* Separator */}
-          <div style={{ width: 1, height: 18, background: "var(--line)", margin: "0 2px" }} />
+          <div className="toolbar__separator" />
 
           {/* Search */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="btn-ghost transition-colors-fast"
-            title="Search torrents (Torbox)"
-            style={{ height: 30, padding: "0 9px" }}
+            className="btn-icon"
+            title="Search torrents"
           >
-            <Search size={13} />
+            <Search size={15} strokeWidth={1.5} />
           </button>
 
-          {/* Separator */}
-          <div style={{ width: 1, height: 18, background: "var(--line)", margin: "0 2px" }} />
+          <div className="toolbar__separator" />
 
           {/* Pause all */}
           <button
             onClick={handlePauseAll}
             disabled={!hasActive}
-            className="btn-ghost transition-colors-fast"
+            className="btn-icon"
             title="Pause all"
-            style={{ height: 30, padding: "0 9px", opacity: hasActive ? 1 : 0.3 }}
+            style={{ opacity: hasActive ? 1 : 0.3 }}
           >
-            <PauseCircle size={13} />
+            <PauseCircle size={15} strokeWidth={1.5} />
           </button>
 
           {/* Resume all */}
           <button
             onClick={handleResumeAll}
             disabled={!hasPaused}
-            className="btn-ghost transition-colors-fast"
+            className="btn-icon"
             title="Resume all"
-            style={{ height: 30, padding: "0 9px", opacity: hasPaused ? 1 : 0.3 }}
+            style={{ opacity: hasPaused ? 1 : 0.3 }}
           >
-            <PlayCircle size={13} />
+            <PlayCircle size={15} strokeWidth={1.5} />
           </button>
 
           {/* Inline magnet input */}
           {showAddDialog && (
             <>
-              <div style={{ width: 1, height: 18, background: "var(--line)", margin: "0 2px" }} />
+              <div className="toolbar__separator" />
               <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
                 <input
                   type="text"
@@ -185,41 +169,10 @@ export function Toolbar() {
                   onKeyDown={handleKeyDown}
                   placeholder="Paste magnet link or URL…"
                   autoFocus
-                  style={{
-                    width: 300,
-                    height: 30,
-                    padding: "0 30px 0 10px",
-                    borderRadius: 6,
-                    border: "1px solid var(--line)",
-                    background: "var(--overlay)",
-                    color: "var(--fg)",
-                    fontSize: 12,
-                    outline: "none",
-                    transition: "border-color 150ms, box-shadow 150ms",
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = "var(--accent)";
-                    e.currentTarget.style.boxShadow = "0 0 0 3px var(--accent-soft)";
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "var(--line)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}
+                  className="toolbar__magnet-input"
                 />
                 {magnetInput && (
-                  <button
-                    onClick={() => setMagnetInput("")}
-                    style={{
-                      position: "absolute",
-                      right: 8,
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "var(--fg-3)",
-                      display: "flex",
-                      padding: 2,
-                    }}
-                  >
+                  <button onClick={() => setMagnetInput("")} className="toolbar__magnet-clear">
                     <X size={11} />
                   </button>
                 )}
@@ -227,8 +180,8 @@ export function Toolbar() {
               <button
                 onClick={handleAddMagnet}
                 disabled={!magnetInput.trim()}
-                className="btn-primary transition-colors-fast"
-                style={{ height: 30, padding: "0 12px", fontSize: 12, opacity: magnetInput.trim() ? 1 : 0.4 }}
+                className="btn-primary"
+                style={{ height: 30, padding: "0 12px", opacity: magnetInput.trim() ? 1 : 0.4 }}
               >
                 Add
               </button>
@@ -236,65 +189,35 @@ export function Toolbar() {
           )}
         </div>
 
-        {/* Right: Global speeds + settings */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {/* Speed display */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "4px 10px",
-              borderRadius: 6,
-              background: "var(--overlay)",
-              border: "1px solid var(--line)",
-            }}
+        {/* Right: Speed pill + density toggle + Ctrl+K */}
+        <div className="toolbar__right">
+          {/* Command palette hint */}
+          <button
+            className="btn-icon"
+            title="Command palette (Ctrl+K)"
+            onClick={() => {/* TODO: open command palette */ }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <div style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--green)", boxShadow: "0 0 4px var(--green-glow)" }} />
+            <Command size={14} strokeWidth={1.5} />
+          </button>
+
+          {/* Speed display */}
+          <div className="toolbar__speed-pill">
+            <div className="toolbar__speed-group">
+              <span className="toolbar__speed-dot toolbar__speed-dot--down" />
               <ArrowDown size={11} color="var(--green)" />
-              <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", fontVariantNumeric: "tabular-nums", color: "var(--fg-2)" }}>
+              <span className="toolbar__speed-value">
                 {formatSpeed(globalDownloadSpeed)}
               </span>
             </div>
-            <div style={{ width: 1, height: 12, background: "var(--line)" }} />
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <div style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--accent)", boxShadow: "0 0 4px var(--accent-glow)" }} />
+            <div className="toolbar__speed-divider" />
+            <div className="toolbar__speed-group">
+              <span className="toolbar__speed-dot toolbar__speed-dot--up" />
               <ArrowUp size={11} color="var(--accent)" />
-              <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", fontVariantNumeric: "tabular-nums", color: "var(--fg-2)" }}>
+              <span className="toolbar__speed-value">
                 {formatSpeed(globalUploadSpeed)}
               </span>
             </div>
           </div>
-
-          {/* Settings */}
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="transition-colors-fast"
-            title="Settings"
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: 6,
-              border: "none",
-              background: showSettings ? "var(--muted)" : "transparent",
-              cursor: "pointer",
-              color: "var(--fg-3)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = "var(--muted)";
-              (e.currentTarget as HTMLButtonElement).style.color = "var(--fg-2)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = showSettings ? "var(--muted)" : "transparent";
-              (e.currentTarget as HTMLButtonElement).style.color = "var(--fg-3)";
-            }}
-          >
-            <Settings size={15} />
-          </button>
         </div>
       </div>
 

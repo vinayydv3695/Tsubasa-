@@ -1,4 +1,5 @@
-// Tsubasa (翼) — Status Bar Component
+// Tsubasa (翼) — Status Bar Component (v3 — Manifesto Redesign)
+// Engine status dot, speeds, peer count. Clean and minimal.
 
 import { useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, Users, Cloud } from "lucide-react";
@@ -6,6 +7,7 @@ import { useUIStore } from "@/stores/ui";
 import { useTorrentStore } from "@/stores/torrent";
 import { formatSpeed } from "@/lib/utils";
 import { getCloudStatus } from "@/lib/tauri";
+import "./StatusBar.css";
 
 export function StatusBar() {
   const engineReady = useUIStore((s) => s.engineReady);
@@ -32,90 +34,54 @@ export function StatusBar() {
   }, []);
 
   return (
-    <div
-      style={{
-        height: 28,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "0 12px",
-        borderTop: "1px solid var(--line)",
-        background: "var(--surface)",
-        flexShrink: 0,
-      }}
-    >
-      {/* Left: Status */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        {/* Engine status dot */}
-        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+    <div className="statusbar">
+      {/* Left: Engine + torrent count */}
+      <div className="statusbar__left">
+        <div className="statusbar__engine">
           <span
-            className={engineReady ? "pulse-green" : undefined}
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              background: engineReady ? "var(--green)" : "var(--amber)",
-              flexShrink: 0,
-              boxShadow: engineReady ? "0 0 5px var(--green-glow)" : "none",
-            }}
+            className={`statusbar__dot ${engineReady ? "statusbar__dot--ready" : "statusbar__dot--starting"}`}
           />
-          <span style={{ fontSize: 11, color: "var(--fg-3)" }}>
+          <span className="statusbar__label">
             {engineReady ? "Ready" : "Starting…"}
           </span>
         </div>
 
-        <span style={{ fontSize: 11, color: "var(--fg-3)", fontFamily: "'JetBrains Mono', monospace", fontVariantNumeric: "tabular-nums" }}>
+        <span className="statusbar__mono">
           {torrentCount} torrents
         </span>
 
         {activeTorrents > 0 && (
-          <span style={{
-            fontSize: 10,
-            color: "var(--accent)",
-            background: "var(--accent-soft)",
-            padding: "0 6px",
-            borderRadius: 99,
-            fontFamily: "'JetBrains Mono', monospace",
-            fontVariantNumeric: "tabular-nums",
-          }}>
+          <span className="badge badge-accent">
             {activeTorrents} active
           </span>
         )}
       </div>
 
-      {/* Right: Stats */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      {/* Right: Cloud + peers + speeds */}
+      <div className="statusbar__right">
         {cloudCount > 0 && (
           <div
-            style={{ display: "flex", alignItems: "center", gap: 4 }}
+            className="statusbar__stat"
             title={`${cloudCount} cloud provider${cloudCount !== 1 ? "s" : ""} connected`}
           >
             <Cloud size={10} color="var(--accent)" />
-            <span style={{ fontSize: 11, color: "var(--fg-3)", fontFamily: "'JetBrains Mono', monospace" }}>
-              {cloudCount}
-            </span>
+            <span className="statusbar__mono">{cloudCount}</span>
           </div>
         )}
 
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <div className="statusbar__stat">
           <Users size={10} color="var(--fg-3)" />
-          <span style={{ fontSize: 11, color: "var(--fg-3)", fontFamily: "'JetBrains Mono', monospace" }}>
-            {totalPeers}
-          </span>
+          <span className="statusbar__mono">{totalPeers}</span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <div className="statusbar__stat">
           <ArrowDown size={10} color="var(--green)" />
-          <span style={{ fontSize: 11, color: "var(--fg-2)", fontFamily: "'JetBrains Mono', monospace" }}>
-            {formatSpeed(globalDownloadSpeed)}
-          </span>
+          <span className="statusbar__stat-value">{formatSpeed(globalDownloadSpeed)}</span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <div className="statusbar__stat">
           <ArrowUp size={10} color="var(--accent)" />
-          <span style={{ fontSize: 11, color: "var(--fg-2)", fontFamily: "'JetBrains Mono', monospace" }}>
-            {formatSpeed(globalUploadSpeed)}
-          </span>
+          <span className="statusbar__stat-value">{formatSpeed(globalUploadSpeed)}</span>
         </div>
       </div>
     </div>

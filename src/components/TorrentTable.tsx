@@ -1,6 +1,6 @@
-// Tsubasa — Torrent Table Component
-// Uses @tanstack/react-table for sortable columns.
-// Includes right-click context menu for torrent actions.
+// Tsubasa (翼) — Torrent Table Component (v3 — Manifesto Redesign)
+// @tanstack/react-table, sortable, context menu, CSS classes.
+// Source badges, inline progress bars, density-aware rows.
 
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
@@ -41,21 +41,23 @@ import {
   formatProgress,
   formatRelativeTime,
 } from "@/lib/utils";
+import "./TorrentTable.css";
 
 // ─── Helpers ────────────────────────────────────────────
 
 function stateIcon(state: TorrentState) {
-  const style: React.CSSProperties = { flexShrink: 0 };
+  const size = 13;
+  const sw = 1.5;
   switch (state) {
-    case "downloading": return <Download size={13} style={{ ...style, color: "var(--green)" }} />;
-    case "seeding": return <Upload size={13} style={{ ...style, color: "var(--green)" }} />;
-    case "paused": return <Pause size={13} style={{ ...style, color: "var(--fg-3)" }} />;
-    case "completed": return <CheckCircle size={13} style={{ ...style, color: "var(--green)" }} />;
-    case "errored": return <AlertCircle size={13} style={{ ...style, color: "var(--red)" }} />;
+    case "downloading": return <Download size={size} strokeWidth={sw} style={{ color: "var(--green)" }} />;
+    case "seeding": return <Upload size={size} strokeWidth={sw} style={{ color: "var(--green)" }} />;
+    case "paused": return <Pause size={size} strokeWidth={sw} style={{ color: "var(--fg-3)" }} />;
+    case "completed": return <CheckCircle size={size} strokeWidth={sw} style={{ color: "var(--green)" }} />;
+    case "errored": return <AlertCircle size={size} strokeWidth={sw} style={{ color: "var(--red)" }} />;
     case "pending":
-    case "checking": return <Loader size={13} style={{ ...style, color: "var(--amber)", animation: "spin 1s linear infinite" }} />;
-    case "queued": return <Clock size={13} style={{ ...style, color: "var(--fg-3)" }} />;
-    case "stopped": return <StopCircle size={13} style={{ ...style, color: "var(--fg-3)" }} />;
+    case "checking": return <Loader size={size} strokeWidth={sw} style={{ color: "var(--amber)", animation: "spin 1s linear infinite" }} />;
+    case "queued": return <Clock size={size} strokeWidth={sw} style={{ color: "var(--fg-3)" }} />;
+    case "stopped": return <StopCircle size={size} strokeWidth={sw} style={{ color: "var(--fg-3)" }} />;
   }
 }
 
@@ -77,42 +79,24 @@ function stateBadge(state: TorrentState) {
   return <span className={`badge badge-${variant}`}>{label}</span>;
 }
 
+function sourceBadge(policy: string) {
+  if (policy === "cloud_only") return <span className="badge badge-cloud"><Cloud size={9} /> Cloud</span>;
+  if (policy === "hybrid") return <span className="badge badge-accent"><Cloud size={9} /> Hybrid</span>;
+  return null;
+}
+
 function ProgressBar({ progress, state }: { progress: number; state: TorrentState }) {
   const isError = state === "errored";
   const isDone = state === "completed" || state === "seeding";
   const isIdle = state === "paused" || state === "stopped";
-  const isActive = state === "downloading";
 
-  const bg = isError ? "var(--red)"
-    : isDone ? "var(--green)"
-      : isIdle ? "var(--fg-muted)"
-        : "var(--accent)";
-
-  const glow = isError ? "0 0 5px var(--red-glow)"
-    : isDone ? "0 0 5px var(--green-glow)"
-      : isActive ? "0 0 6px var(--accent-glow)"
-        : "none";
+  const variant = isError ? "red" : isDone ? "green" : isIdle ? "muted" : "accent";
 
   return (
-    <div
-      style={{
-        width: "100%",
-        height: 3,
-        borderRadius: 99,
-        background: "var(--muted)",
-        overflow: "visible",
-        marginTop: 4,
-      }}
-    >
+    <div className="torrent-table__progress">
       <div
-        style={{
-          height: "100%",
-          width: `${Math.min(progress * 100, 100)}%`,
-          borderRadius: 99,
-          background: bg,
-          boxShadow: glow,
-          transition: "width 300ms ease",
-        }}
+        className={`torrent-table__progress-fill torrent-table__progress-fill--${variant}`}
+        style={{ width: `${Math.min(progress * 100, 100)}%` }}
       />
     </div>
   );
@@ -136,26 +120,12 @@ const columns = [
     cell: (info) => {
       const t = info.row.original;
       return (
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-          <div style={{ paddingTop: 1, flexShrink: 0 }}>{stateIcon(t.state)}</div>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{
-                fontSize: 12,
-                fontWeight: 500,
-                color: "var(--fg)",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}>
-                {t.name}
-              </span>
-              {t.policy !== "local_only" && (
-                <span className="badge badge-blue" style={{ flexShrink: 0 }}>
-                  <Cloud size={9} />
-                  {t.policy === "cloud_only" ? "Cloud" : "Hybrid"}
-                </span>
-              )}
+        <div className="torrent-table__name-cell">
+          <div className="torrent-table__name-icon">{stateIcon(t.state)}</div>
+          <div className="torrent-table__name-content">
+            <div className="torrent-table__name-row">
+              <span className="torrent-table__name-text">{t.name}</span>
+              {sourceBadge(t.policy)}
             </div>
             <ProgressBar progress={t.progress} state={t.state} />
           </div>
@@ -166,22 +136,17 @@ const columns = [
   columnHelper.accessor("total_bytes", {
     header: "Size",
     size: 80,
-    cell: (info) => {
-      const v = info.getValue();
-      return (
-        <span style={{ fontSize: 11, color: "var(--fg-2)", fontFamily: "'JetBrains Mono', monospace", fontVariantNumeric: "tabular-nums" }}>
-          {v > 0 ? formatBytes(v) : "—"}
-        </span>
-      );
-    },
+    cell: (info) => (
+      <span className="torrent-table__mono">
+        {info.getValue() > 0 ? formatBytes(info.getValue()) : "—"}
+      </span>
+    ),
   }),
   columnHelper.accessor("progress", {
     header: "Done",
     size: 60,
     cell: (info) => (
-      <span style={{ fontSize: 11, color: "var(--fg-2)", fontFamily: "'JetBrains Mono', monospace", fontVariantNumeric: "tabular-nums" }}>
-        {formatProgress(info.getValue())}
-      </span>
+      <span className="torrent-table__mono">{formatProgress(info.getValue())}</span>
     ),
   }),
   columnHelper.accessor("state", {
@@ -193,7 +158,7 @@ const columns = [
     header: "Down",
     size: 80,
     cell: (info) => (
-      <span style={{ fontSize: 11, color: info.getValue() > 0 ? "var(--green)" : "var(--fg-3)", fontFamily: "'JetBrains Mono', monospace", fontVariantNumeric: "tabular-nums" }}>
+      <span className={`torrent-table__mono ${info.getValue() > 0 ? "torrent-table__mono--green" : "torrent-table__mono--muted"}`}>
         {info.getValue() > 0 ? formatSpeed(info.getValue()) : "—"}
       </span>
     ),
@@ -202,7 +167,7 @@ const columns = [
     header: "Up",
     size: 80,
     cell: (info) => (
-      <span style={{ fontSize: 11, color: info.getValue() > 0 ? "var(--accent)" : "var(--fg-3)", fontFamily: "'JetBrains Mono', monospace", fontVariantNumeric: "tabular-nums" }}>
+      <span className={`torrent-table__mono ${info.getValue() > 0 ? "torrent-table__mono--accent" : "torrent-table__mono--muted"}`}>
         {info.getValue() > 0 ? formatSpeed(info.getValue()) : "—"}
       </span>
     ),
@@ -213,21 +178,13 @@ const columns = [
       id: "peers",
       header: "Peers",
       size: 60,
-      cell: (info) => (
-        <span style={{ fontSize: 11, color: "var(--fg-2)", fontFamily: "'JetBrains Mono', monospace", fontVariantNumeric: "tabular-nums" }}>
-          {info.getValue()}
-        </span>
-      ),
+      cell: (info) => <span className="torrent-table__mono">{info.getValue()}</span>,
     }
   ),
   columnHelper.accessor("eta_seconds", {
     header: "ETA",
     size: 64,
-    cell: (info) => (
-      <span style={{ fontSize: 11, color: "var(--fg-2)", fontFamily: "'JetBrains Mono', monospace", fontVariantNumeric: "tabular-nums" }}>
-        {formatEta(info.getValue())}
-      </span>
-    ),
+    cell: (info) => <span className="torrent-table__mono">{formatEta(info.getValue())}</span>,
     sortingFn: (rowA, rowB) => {
       const a = rowA.original.eta_seconds ?? Infinity;
       const b = rowB.original.eta_seconds ?? Infinity;
@@ -238,7 +195,7 @@ const columns = [
     header: "Added",
     size: 80,
     cell: (info) => (
-      <span style={{ fontSize: 11, color: "var(--fg-3)" }}>
+      <span className="torrent-table__mono torrent-table__mono--muted">
         {formatRelativeTime(info.getValue())}
       </span>
     ),
@@ -285,52 +242,14 @@ function ContextMenu({ x, y, torrent, onClose }: ContextMenuProps) {
   ].filter(Boolean) as Array<{ label: string; icon: React.ReactNode; action: () => void; danger: boolean } | null>;
 
   return (
-    <div
-      ref={menuRef}
-      style={{
-        position: "fixed",
-        zIndex: 30,
-        left: x,
-        top: y,
-        minWidth: 180,
-        background: "var(--surface)",
-        border: "1px solid var(--line-strong)",
-        borderRadius: 8,
-        boxShadow: "var(--shadow-lg)",
-        padding: 4,
-        backdropFilter: "blur(12px) saturate(160%)",
-      }}
-    >
+    <div ref={menuRef} className="context-menu" style={{ left: x, top: y }}>
       {items.map((item, i) => {
-        if (item === null) {
-          return <div key={`sep-${i}`} style={{ margin: "4px 0", height: 1, background: "var(--line)" }} />;
-        }
+        if (item === null) return <div key={`sep-${i}`} className="context-menu__separator" />;
         return (
           <button
             key={item.label}
             onClick={() => { item.action(); onClose(); }}
-            className="transition-colors-fast"
-            style={{
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "6px 12px",
-              border: "none",
-              background: "transparent",
-              cursor: "pointer",
-              fontSize: 12,
-              color: item.danger ? "var(--red)" : "var(--fg-2)",
-              textAlign: "left",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = item.danger ? "var(--red-soft)" : "var(--muted)";
-              (e.currentTarget as HTMLButtonElement).style.color = item.danger ? "var(--red)" : "var(--fg)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-              (e.currentTarget as HTMLButtonElement).style.color = item.danger ? "var(--red)" : "var(--fg-2)";
-            }}
+            className={`context-menu__item ${item.danger ? "context-menu__item--danger" : ""}`}
           >
             {item.icon}
             {item.label}
@@ -345,23 +264,14 @@ function ContextMenu({ x, y, torrent, onClose }: ContextMenuProps) {
 
 function EmptyState() {
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
-      <div style={{
-        width: 56,
-        height: 56,
-        borderRadius: 14,
-        background: "var(--overlay)",
-        border: "1px solid var(--line)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}>
+    <div className="torrent-table__empty">
+      <div className="torrent-table__empty-icon">
         <Download size={22} color="var(--fg-muted)" />
       </div>
       <div style={{ textAlign: "center" }}>
-        <p style={{ fontSize: 13, fontWeight: 500, color: "var(--fg-2)" }}>No torrents yet</p>
-        <p style={{ fontSize: 12, color: "var(--fg-3)", marginTop: 4 }}>
-          Click <strong style={{ color: "var(--fg-2)" }}>Add</strong> to add a magnet link or torrent file
+        <p className="torrent-table__empty-title">Add your first torrent</p>
+        <p className="torrent-table__empty-subtitle">
+          Paste a magnet link or drop a .torrent file
         </p>
       </div>
     </div>
@@ -393,29 +303,22 @@ export function TorrentTable() {
     if (filter === "errored") return list.filter((t) => t.state === "errored");
     if (filter === "cloud") return list.filter((t) => t.policy === "cloud_only" || t.policy === "hybrid");
 
-    // Category filter: cat:Movies, cat:TV Shows, etc.
+    // Category filter
     if (filter.startsWith("cat:")) {
       const catName = filter.slice(4);
-      if (catName === "Other") {
-        return list.filter((t) => getCategoryForTorrent(t.name) === null);
-      }
-      return list.filter((t) => {
-        const cat = getCategoryForTorrent(t.name);
-        return cat?.name === catName;
-      });
+      if (catName === "Other") return list.filter((t) => getCategoryForTorrent(t.name) === null);
+      return list.filter((t) => getCategoryForTorrent(t.name)?.name === catName);
     }
 
-    // Tag filter: tag:SomeTag
+    // Tag filter
     if (filter.startsWith("tag:")) {
       const tagName = filter.slice(4);
       if (tagName === "(Untagged)") return list.filter((t) => !torrentTags[t.id]);
       return list.filter((t) => torrentTags[t.id] === tagName);
     }
 
-    // Tracker filter: tracker:SomeHost (not yet fully implemented—falls through to all)
     if (filter.startsWith("tracker:")) return list;
 
-    // Fallback: treat as TorrentState
     return list.filter((t) => t.state === filter);
   }, [torrents, filter, torrentTags]);
 
@@ -439,44 +342,20 @@ export function TorrentTable() {
   if (data.length === 0) return <EmptyState />;
 
   return (
-    <div style={{ flex: 1, overflow: "auto", position: "relative" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        {/* Sticky header */}
-        <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--surface)" }}>
+    <div className="torrent-table">
+      <table>
+        <thead>
           {table.getHeaderGroups().map((headerGroup) => (
-            <tr
-              key={headerGroup.id}
-              style={{ borderBottom: "1px solid var(--line)" }}
-            >
+            <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  style={{
-                    padding: "8px 12px",
-                    textAlign: "left",
-                    width: header.getSize() === 999 ? undefined : header.getSize(),
-                    userSelect: "none",
-                  }}
+                  style={{ width: header.getSize() === 999 ? undefined : header.getSize() }}
                 >
                   {!header.isPlaceholder && (
                     <button
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 3,
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        fontSize: 10,
-                        fontWeight: 600,
-                        color: "var(--fg-3)",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                        padding: 0,
-                      }}
+                      className="torrent-table__header-btn"
                       onClick={header.column.getToggleSortingHandler()}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--fg-2)"; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--fg-3)"; }}
                     >
                       {flexRender(header.column.columnDef.header, header.getContext())}
                       <SortIcon sorted={header.column.getIsSorted()} />
@@ -496,25 +375,13 @@ export function TorrentTable() {
             return (
               <tr
                 key={row.id}
+                data-selected={isSelected}
                 onClick={() => selectTorrent(torrent.id)}
                 onDoubleClick={() => { selectTorrent(torrent.id); setDetailPanelOpen(true); }}
                 onContextMenu={(e) => handleContextMenu(e, torrent)}
-                style={{
-                  cursor: "pointer",
-                  borderBottom: "1px solid var(--line-subtle)",
-                  background: isSelected ? "var(--accent-soft)" : "transparent",
-                  transition: "background-color 100ms ease",
-                  position: "relative",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) (e.currentTarget as HTMLTableRowElement).style.background = "var(--muted)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) (e.currentTarget as HTMLTableRowElement).style.background = "transparent";
-                }}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} style={{ padding: "8px 12px", verticalAlign: "middle" }}>
+                  <td key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
@@ -524,7 +391,6 @@ export function TorrentTable() {
         </tbody>
       </table>
 
-      {/* Context menu */}
       {contextMenu && (
         <ContextMenu
           x={contextMenu.x}
