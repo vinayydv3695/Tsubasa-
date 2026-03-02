@@ -64,173 +64,202 @@ export function AggregatorPanel({ onAddTorrent, onClose }: AggregatorPanelProps)
         if (!store.pluginsLoaded) store.loadPlugins();
     }, []);
 
+    useEffect(() => {
+        const handleKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && onClose) onClose();
+        };
+        window.addEventListener("keydown", handleKey);
+        return () => window.removeEventListener("keydown", handleKey);
+    }, [onClose]);
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         store.search();
     };
 
     return (
-        <div style={{
-            display: "flex", flexDirection: "column", height: "100%",
-            background: "var(--surface)", borderRadius: 12,
-            border: "1px solid var(--line-strong)",
-            overflow: "hidden",
-        }}>
-            {/* Header */}
-            <div style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "12px 16px", borderBottom: "1px solid var(--line)",
-            }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <Search size={14} color="var(--accent)" />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--fg)", letterSpacing: "-0.2px" }}>
-                        Search Aggregator
-                    </span>
-                    <span style={{
-                        padding: "2px 6px", borderRadius: 4, fontSize: 9, fontWeight: 600,
-                        background: "var(--accent-soft)", color: "var(--accent)",
-                    }}>
-                        {store.plugins.length} plugins
-                    </span>
-                </div>
-                {onClose && (
-                    <button onClick={onClose} style={{
-                        width: 28, height: 28, borderRadius: 6, border: "none",
-                        background: "transparent", cursor: "pointer", color: "var(--fg-3)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                        <X size={14} />
-                    </button>
-                )}
-            </div>
-
-            {/* Search bar */}
-            <form onSubmit={handleSearch} style={{ padding: "12px 16px", borderBottom: "1px solid var(--line-subtle)" }}>
-                <div style={{ display: "flex", gap: 8 }}>
-                    <div style={{
-                        flex: 1, display: "flex", alignItems: "center", gap: 8,
-                        padding: "8px 12px", borderRadius: 8,
-                        border: "1px solid var(--line)", background: "var(--overlay)",
-                    }}>
-                        <Search size={13} color="var(--fg-3)" />
-                        <input
-                            type="text"
-                            value={store.query}
-                            onChange={(e) => store.setQuery(e.target.value)}
-                            placeholder="Search across all plugins…"
-                            style={{
-                                flex: 1, border: "none", background: "transparent",
-                                color: "var(--fg)", fontSize: 12, outline: "none",
-                            }}
-                        />
-                        {store.query && (
-                            <button
-                                type="button"
-                                onClick={() => { store.setQuery(""); store.clearResults(); }}
-                                style={{ border: "none", background: "transparent", cursor: "pointer", color: "var(--fg-3)", padding: 0, display: "flex" }}
-                            >
-                                <X size={12} />
-                            </button>
-                        )}
+        <motion.div
+            style={{
+                position: "fixed", inset: 0, zIndex: 100,
+                display: "flex", alignItems: "flex-start", justifyContent: "center",
+                paddingTop: "8vh", background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)",
+            }}
+            onClick={(e) => { if (e.target === e.currentTarget && onClose) onClose(); }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+        >
+            <motion.div
+                style={{
+                    width: 720, height: 600, maxHeight: "80vh",
+                    display: "flex", flexDirection: "column",
+                    background: "var(--surface)", borderRadius: 14,
+                    border: "1px solid var(--line-strong)",
+                    boxShadow: "var(--shadow-lg), 0 0 40px rgba(0,0,0,0.4)",
+                    overflow: "hidden",
+                }}
+                initial={{ y: -20, scale: 0.98, opacity: 0 }}
+                animate={{ y: 0, scale: 1, opacity: 1 }}
+                exit={{ y: -20, scale: 0.98, opacity: 0 }}
+                transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+            >
+                {/* Header */}
+                <div style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    padding: "12px 16px", borderBottom: "1px solid var(--line)",
+                }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <Search size={14} color="var(--accent)" />
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--fg)", letterSpacing: "-0.2px" }}>
+                            Search Aggregator
+                        </span>
+                        <span style={{
+                            padding: "2px 6px", borderRadius: 4, fontSize: 9, fontWeight: 600,
+                            background: "var(--accent-soft)", color: "var(--accent)",
+                        }}>
+                            {store.plugins.length} plugins
+                        </span>
                     </div>
-
-                    <button
-                        type="button"
-                        onClick={() => setShowFilters(!showFilters)}
-                        style={{
-                            padding: "8px 10px", borderRadius: 8,
-                            border: "1px solid", borderColor: showFilters ? "var(--accent)" : "var(--line)",
-                            background: showFilters ? "var(--accent-soft)" : "var(--overlay)",
-                            color: showFilters ? "var(--accent)" : "var(--fg-2)",
-                            cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11,
-                        }}
-                    >
-                        <Filter size={12} />
-                        <ChevronDown size={10} style={{ transform: showFilters ? "rotate(180deg)" : "none", transition: "transform 150ms" }} />
-                    </button>
-
-                    <button
-                        type="submit"
-                        disabled={store.loading || !store.query.trim()}
-                        style={{
-                            padding: "8px 16px", borderRadius: 8, border: "none",
-                            background: "var(--gradient-accent)", color: "#fff",
-                            fontSize: 12, fontWeight: 500, cursor: "pointer",
-                            opacity: store.loading || !store.query.trim() ? 0.5 : 1,
-                            display: "flex", alignItems: "center", gap: 6,
-                        }}
-                    >
-                        {store.loading ? <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> : <Search size={12} />}
-                        Search
-                    </button>
-                </div>
-
-                {/* Category filters */}
-                <AnimatePresence>
-                    {showFilters && (
-                        <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.15 }}
-                            style={{ overflow: "hidden" }}
-                        >
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 10 }}>
-                                {CATEGORIES.map(({ value, label }) => (
-                                    <button
-                                        key={label}
-                                        type="button"
-                                        onClick={() => store.setCategory(value)}
-                                        style={{
-                                            padding: "4px 10px", borderRadius: 6, fontSize: 10, fontWeight: 500,
-                                            border: "1px solid",
-                                            borderColor: store.category === value ? "var(--accent)" : "var(--line)",
-                                            background: store.category === value ? "var(--accent-soft)" : "transparent",
-                                            color: store.category === value ? "var(--accent)" : "var(--fg-2)",
-                                            cursor: "pointer", transition: "all 150ms ease",
-                                        }}
-                                    >
-                                        {label}
-                                    </button>
-                                ))}
-                            </div>
-                        </motion.div>
+                    {onClose && (
+                        <button onClick={onClose} style={{
+                            width: 28, height: 28, borderRadius: 6, border: "none",
+                            background: "transparent", cursor: "pointer", color: "var(--fg-3)",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                        }}>
+                            <X size={14} />
+                        </button>
                     )}
-                </AnimatePresence>
-            </form>
+                </div>
 
-            {/* Results */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "0" }}>
-                {store.error && (
-                    <div style={{ margin: 16, padding: "10px 14px", borderRadius: 8, background: "var(--red-soft)", color: "var(--red)", fontSize: 11, border: "1px solid rgba(239,68,68,0.2)" }}>
-                        {store.error}
+                {/* Search bar */}
+                <form onSubmit={handleSearch} style={{ padding: "12px 16px", borderBottom: "1px solid var(--line-subtle)" }}>
+                    <div style={{ display: "flex", gap: 8 }}>
+                        <div style={{
+                            flex: 1, display: "flex", alignItems: "center", gap: 8,
+                            padding: "8px 12px", borderRadius: 8,
+                            border: "1px solid var(--line)", background: "var(--overlay)",
+                        }}>
+                            <Search size={13} color="var(--fg-3)" />
+                            <input
+                                type="text"
+                                value={store.query}
+                                onChange={(e) => store.setQuery(e.target.value)}
+                                placeholder="Search across all plugins…"
+                                style={{
+                                    flex: 1, border: "none", background: "transparent",
+                                    color: "var(--fg)", fontSize: 12, outline: "none",
+                                }}
+                            />
+                            {store.query && (
+                                <button
+                                    type="button"
+                                    onClick={() => { store.setQuery(""); store.clearResults(); }}
+                                    style={{ border: "none", background: "transparent", cursor: "pointer", color: "var(--fg-3)", padding: 0, display: "flex" }}
+                                >
+                                    <X size={12} />
+                                </button>
+                            )}
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => setShowFilters(!showFilters)}
+                            style={{
+                                padding: "8px 10px", borderRadius: 8,
+                                border: "1px solid", borderColor: showFilters ? "var(--accent)" : "var(--line)",
+                                background: showFilters ? "var(--accent-soft)" : "var(--overlay)",
+                                color: showFilters ? "var(--accent)" : "var(--fg-2)",
+                                cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11,
+                            }}
+                        >
+                            <Filter size={12} />
+                            <ChevronDown size={10} style={{ transform: showFilters ? "rotate(180deg)" : "none", transition: "transform 150ms" }} />
+                        </button>
+
+                        <button
+                            type="submit"
+                            disabled={store.loading || !store.query.trim()}
+                            style={{
+                                padding: "8px 16px", borderRadius: 8, border: "none",
+                                background: "var(--gradient-accent)", color: "#fff",
+                                fontSize: 12, fontWeight: 500, cursor: "pointer",
+                                opacity: store.loading || !store.query.trim() ? 0.5 : 1,
+                                display: "flex", alignItems: "center", gap: 6,
+                            }}
+                        >
+                            {store.loading ? <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> : <Search size={12} />}
+                            Search
+                        </button>
                     </div>
-                )}
 
-                {store.results.length > 0 && (
-                    <div style={{ padding: "8px 16px 4px", fontSize: 10, color: "var(--fg-3)" }}>
-                        {store.results.length} results
-                    </div>
-                )}
+                    {/* Category filters */}
+                    <AnimatePresence>
+                        {showFilters && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.15 }}
+                                style={{ overflow: "hidden" }}
+                            >
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 10 }}>
+                                    {CATEGORIES.map(({ value, label }) => (
+                                        <button
+                                            key={label}
+                                            type="button"
+                                            onClick={() => store.setCategory(value)}
+                                            style={{
+                                                padding: "4px 10px", borderRadius: 6, fontSize: 10, fontWeight: 500,
+                                                border: "1px solid",
+                                                borderColor: store.category === value ? "var(--accent)" : "var(--line)",
+                                                background: store.category === value ? "var(--accent-soft)" : "transparent",
+                                                color: store.category === value ? "var(--accent)" : "var(--fg-2)",
+                                                cursor: "pointer", transition: "all 150ms ease",
+                                            }}
+                                        >
+                                            {label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </form>
 
-                {store.results.map((result, i) => (
-                    <ResultRow key={`${result.source}-${result.info_hash ?? i}`} result={result} onAdd={onAddTorrent} />
-                ))}
+                {/* Results */}
+                <div style={{ flex: 1, overflowY: "auto", padding: "0" }}>
+                    {store.error && (
+                        <div style={{ margin: 16, padding: "10px 14px", borderRadius: 8, background: "var(--red-soft)", color: "var(--red)", fontSize: 11, border: "1px solid rgba(239,68,68,0.2)" }}>
+                            {store.error}
+                        </div>
+                    )}
 
-                {!store.loading && store.results.length === 0 && store.query && !store.error && (
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 120, color: "var(--fg-3)", fontSize: 12 }}>
-                        No results found
-                    </div>
-                )}
+                    {store.results.length > 0 && (
+                        <div style={{ padding: "8px 16px 4px", fontSize: 10, color: "var(--fg-3)" }}>
+                            {store.results.length} results
+                        </div>
+                    )}
 
-                {!store.query && store.results.length === 0 && !store.loading && (
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 120, color: "var(--fg-3)", fontSize: 12, gap: 6 }}>
-                        <Search size={20} strokeWidth={1.5} />
-                        Search across {store.plugins.length} torrent sites
-                    </div>
-                )}
-            </div>
-        </div>
+                    {store.results.map((result, i) => (
+                        <ResultRow key={`${result.source}-${result.info_hash ?? i}`} result={result} onAdd={onAddTorrent} />
+                    ))}
+
+                    {!store.loading && store.results.length === 0 && store.query && !store.error && (
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 120, color: "var(--fg-3)", fontSize: 12 }}>
+                            No results found
+                        </div>
+                    )}
+
+                    {!store.query && store.results.length === 0 && !store.loading && (
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 120, color: "var(--fg-3)", fontSize: 12, gap: 6 }}>
+                            <Search size={20} strokeWidth={1.5} />
+                            Search across {store.plugins.length} torrent sites
+                        </div>
+                    )}
+                </div>
+            </motion.div>
+        </motion.div>
     );
 }
 

@@ -23,10 +23,12 @@ import {
   Gamepad2,
   Monitor,
   FolderOpen,
+  Globe2,
 } from "lucide-react";
 import { useTorrentStore } from "@/stores/torrent";
 import { useUIStore } from "@/stores/ui";
 import { useSearchStore } from "@/stores/search";
+import { useAggregatorStore } from "@/stores/aggregator";
 import { BUILT_IN_CATEGORIES } from "@/stores/categories";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import "./Sidebar.css";
@@ -75,6 +77,7 @@ export function Sidebar() {
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
   const setDetailPanelOpen = useUIStore((s) => s.setDetailPanelOpen);
   const setSearchOpen = useSearchStore((s) => s.setOpen);
+  const setAggregatorOpen = useAggregatorStore((s) => s.setOpen);
 
   const [showSettings, setShowSettings] = useState(false);
 
@@ -155,6 +158,13 @@ export function Sidebar() {
             active={false}
             collapsed={collapsed}
             onClick={() => setSearchOpen(true)}
+          />
+          <NavItem
+            label="Plugins"
+            icon={<Globe2 size={18} strokeWidth={1.5} />}
+            active={false}
+            collapsed={collapsed}
+            onClick={() => setAggregatorOpen(true)}
           />
 
           {/* Spacer pushes bottom items down */}

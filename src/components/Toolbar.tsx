@@ -21,7 +21,9 @@ import { useSearchStore } from "@/stores/search";
 import { formatSpeed } from "@/lib/utils";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import { SearchPanel } from "@/components/SearchPanel";
+import { AggregatorPanel } from "@/components/AggregatorPanel";
 import { CommandPalette } from "@/components/CommandPalette";
+import { useAggregatorStore } from "@/stores/aggregator";
 import "./Toolbar.css";
 
 export function Toolbar() {
@@ -38,6 +40,9 @@ export function Toolbar() {
 
   const searchOpen = useSearchStore((s) => s.isOpen);
   const setSearchOpen = useSearchStore((s) => s.setOpen);
+
+  const aggregatorOpen = useAggregatorStore((s) => s.isOpen);
+  const setAggregatorOpen = useAggregatorStore((s) => s.setOpen);
 
   // Global Ctrl+K / ⌘+K shortcut
   useEffect(() => {
@@ -240,6 +245,9 @@ export function Toolbar() {
 
       {/* Search Panel */}
       {searchOpen && <SearchPanel onClose={() => setSearchOpen(false)} />}
+
+      {/* Aggregator Panel */}
+      {aggregatorOpen && <AggregatorPanel onAddTorrent={(magnet) => { addTorrent(magnet); setAggregatorOpen(false); }} onClose={() => setAggregatorOpen(false)} />}
 
       {/* Command Palette */}
       <CommandPalette

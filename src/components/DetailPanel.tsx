@@ -20,9 +20,11 @@ import {
   Clock,
   XCircle,
   Loader2,
+  Activity,
 } from "lucide-react";
 import { useTorrentStore } from "@/stores/torrent";
 import { useUIStore } from "@/stores/ui";
+import { SpeedGraph } from "@/components/SpeedGraph";
 import {
   formatBytes,
   formatSpeed,
@@ -53,6 +55,7 @@ const TABS = [
   { id: "files", label: "Files", icon: <FileText size={13} /> },
   { id: "peers", label: "Peers", icon: <Users size={13} /> },
   { id: "trackers", label: "Trackers", icon: <Radio size={13} /> },
+  { id: "speed", label: "Speed", icon: <Activity size={13} /> },
   { id: "pieces", label: "Pieces", icon: <Grid3x3 size={13} /> },
   { id: "cloud", label: "Cloud", icon: <Cloud size={13} /> },
 ];
@@ -568,6 +571,19 @@ function CloudTab() {
   );
 }
 
+// ─── Speed Tab ───────────────────────────────────────────
+
+function SpeedTab({ torrentId }: { torrentId: string }) {
+  return (
+    <div style={{ padding: 16, height: "100%", display: "flex", flexDirection: "column" }}>
+      <SpeedGraph torrentId={torrentId} width={400} height={180} />
+      <div style={{ marginTop: 12, fontSize: 11, color: "var(--fg-3)", textAlign: "center" }}>
+        Real-time bandwidth usage for this torrent (last 60 seconds).
+      </div>
+    </div>
+  );
+}
+
 // ─── Pieces Placeholder ──────────────────────────────────
 
 function PiecesTab() {
@@ -670,6 +686,7 @@ export function DetailPanel() {
         {detailPanelTab === "files" && <FilesTab />}
         {detailPanelTab === "peers" && <PeersTab />}
         {detailPanelTab === "trackers" && <TrackersTab />}
+        {detailPanelTab === "speed" && <SpeedTab torrentId={torrent.id} />}
         {detailPanelTab === "pieces" && <PiecesTab />}
         {detailPanelTab === "cloud" && <CloudTab />}
       </div>

@@ -15,8 +15,10 @@ interface AggregatorStore {
     loading: boolean;
     error: string | null;
     pluginsLoaded: boolean;
+    isOpen: boolean;
 
     // Actions
+    setOpen: (open: boolean) => void;
     setQuery: (q: string) => void;
     setCategory: (c: string | null) => void;
     togglePlugin: (id: string) => void;
@@ -34,7 +36,9 @@ export const useAggregatorStore = create<AggregatorStore>((set, get) => ({
     loading: false,
     error: null,
     pluginsLoaded: false,
+    isOpen: false,
 
+    setOpen: (isOpen) => set({ isOpen }),
     setQuery: (query) => set({ query }),
     setCategory: (category) => set({ category }),
 

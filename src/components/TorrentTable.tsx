@@ -29,11 +29,15 @@ import {
   ChevronDown,
   ChevronsUpDown,
   Magnet,
+  Zap,
+  ArrowUpToLine,
+  ArrowDownToLine,
 } from "lucide-react";
 import { useTorrentStore } from "@/stores/torrent";
 import { useUIStore } from "@/stores/ui";
 import { useCategoryStore, getCategoryForTorrent } from "@/stores/categories";
 import type { TorrentSummary, TorrentState } from "@/types";
+import { getQueuePositions, forceStartTorrent, setTorrentPriority } from "@/lib/tauri";
 import {
   formatBytes,
   formatSpeed,
@@ -114,6 +118,17 @@ function SortIcon({ sorted }: { sorted: false | "asc" | "desc" }) {
 const columnHelper = createColumnHelper<TorrentSummary>();
 
 const columns = [
+  columnHelper.display({
+    id: "queue_pos",
+    header: "#",
+    size: 40,
+    cell: ({ row, table }) => {
+      const posMap = (table.options.meta as any)?.queuePositions as Map<string, string>;
+      const pos = posMap?.get(row.original.id);
+      if (!pos || pos === "0") return <span className="torrent-table__mono torrent-table__mono--muted">—</span>;
+      return <span className="torrent-table__mono">{pos}</span>;
+    },
+  }),
   columnHelper.accessor("name", {
     header: "Name",
     size: 999,
@@ -237,6 +252,10 @@ function ContextMenu({ x, y, torrent, onClose }: ContextMenuProps) {
     { label: "Copy Magnet Link", icon: <Magnet size={13} />, action: () => navigator.clipboard.writeText(`magnet:?xt=urn:btih:${torrent.info_hash}`), danger: false },
     { label: "Open Save Path", icon: <FolderOpen size={13} />, action: () => { }, danger: false },
     null,
+    { label: "Force Start", icon: <Zap size={13} />, action: () => forceStartTorrent(torrent.id), danger: false },
+    { label: "High Priority", icon: <ArrowUpToLine size={13} />, action: () => setTorrentPriority(torrent.id, 255), danger: false },
+    { label: "Low Priority", icon: <ArrowDownToLine size={13} />, action: () => setTorrentPriority(torrent.id, 0), danger: false },
+    null,
     { label: "Remove", icon: <Trash2 size={13} />, action: () => removeTorrent(torrent.id, false), danger: true },
     { label: "Remove + Delete Files", icon: <Trash2 size={13} />, action: () => removeTorrent(torrent.id, true), danger: true },
   ].filter(Boolean) as Array<{ label: string; icon: React.ReactNode; action: () => void; danger: boolean } | null>;
@@ -289,6 +308,26 @@ export function TorrentTable() {
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; torrent: TorrentSummary } | null>(null);
+  const [queuePositions, setQueuePositions] = useState<Map<string, string>>(new Map());
+
+  // Poll for queue positions
+  useEffect(() => {
+    let active = true;
+    const poll = async () => {
+      try {
+        const positions = await getQueuePositions();
+        if (!active) return;
+        const map = new Map<string, string>();
+        for (const p of positions) {
+          map.set(p.torrent_id, p.position);
+        }
+        setQueuePositions(map);
+      } catch { /* ignore */ }
+    };
+    poll();
+    const id = setInterval(poll, 2000);
+    return () => { active = false; clearInterval(id); };
+  }, []);
 
   // Filter torrents
   const torrentTags = useCategoryStore((s) => s.torrentTags);
@@ -329,6 +368,7 @@ export function TorrentTable() {
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    meta: { queuePositions },
   });
 
   const handleContextMenu = useCallback((e: React.MouseEvent, torrent: TorrentSummary) => {

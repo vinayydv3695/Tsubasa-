@@ -5,9 +5,11 @@
 
 import { useRef, useEffect, useCallback, useState } from "react";
 import type { SpeedSample } from "@/types";
-import { getSpeedGraph } from "@/lib/tauri";
+import { getSpeedGraph, getTorrentSpeedGraph } from "@/lib/tauri";
 
 interface SpeedGraphProps {
+    /** Optional specific torrent ID */
+    torrentId?: string;
     width?: number;
     height?: number;
     /** How many seconds of history to show (default 60) */
@@ -27,6 +29,7 @@ function formatSpeed(bytesPerSec: number): string {
 }
 
 export function SpeedGraph({
+    torrentId,
     width = 320,
     height = 100,
     windowSecs = 60,
@@ -43,7 +46,9 @@ export function SpeedGraph({
         let active = true;
         const poll = async () => {
             try {
-                const data = await getSpeedGraph(windowSecs);
+                const data = torrentId
+                    ? await getTorrentSpeedGraph(torrentId, windowSecs)
+                    : await getSpeedGraph(windowSecs);
                 if (active && data.length > 0) {
                     setSamples(data);
                     const last = data[data.length - 1];
@@ -56,7 +61,7 @@ export function SpeedGraph({
         poll();
         const id = setInterval(poll, pollInterval);
         return () => { active = false; clearInterval(id); };
-    }, [windowSecs, pollInterval]);
+    }, [windowSecs, pollInterval, torrentId]);
 
     // Draw graph
     const draw = useCallback(() => {
