@@ -3,6 +3,9 @@
 
 pub mod piratebay;
 pub mod yts;
+pub mod leet;
+pub mod nyaa;
+pub mod torrentgalaxy;
 
 use super::plugin::SearchPlugin;
 
@@ -11,5 +14,8 @@ pub fn all_plugins() -> Vec<Box<dyn SearchPlugin>> {
     vec![
         Box::new(piratebay::PirateBayPlugin),
         Box::new(yts::YtsPlugin),
+        Box::new(leet::LeetPlugin),
+        Box::new(nyaa::NyaaPlugin),
+        Box::new(torrentgalaxy::TorrentGalaxyPlugin),
     ]
 }
