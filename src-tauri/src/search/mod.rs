@@ -1,7 +1,10 @@
 // Tsubasa (翼) — Search
 // Torbox Search API integration via search-api.torbox.app.
-// Provides torrent search using Torbox's scraper/aggregator service.
+// Also includes the plugin-based search aggregator for direct indexer scraping.
 
+pub mod plugin;
+pub mod plugins;
+pub mod aggregator;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 

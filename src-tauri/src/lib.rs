@@ -13,6 +13,8 @@ pub mod bandwidth;
 pub mod search;
 pub mod logging;
 pub mod settings;
+pub mod queue;
+pub mod speed_graph;
 pub mod crypto;
 pub mod retry;
 pub mod updater;
