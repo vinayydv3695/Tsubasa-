@@ -126,11 +126,29 @@ pub fn run() {
             commands::torrent::get_torrent_files,
             commands::torrent::get_torrent_peers,
             commands::torrent::get_torrent_trackers,
-            // Settings commands
+            // Settings commands (legacy)
             commands::settings::get_settings,
             commands::settings::update_settings,
             commands::settings::get_setting,
             commands::settings::set_setting,
+            // Settings commands (v2 grouped)
+            commands::settings_v2::get_all_settings,
+            commands::settings_v2::get_behavior_settings,
+            commands::settings_v2::get_download_settings,
+            commands::settings_v2::get_connection_settings,
+            commands::settings_v2::get_speed_settings,
+            commands::settings_v2::get_bittorrent_settings,
+            commands::settings_v2::get_queue_settings,
+            commands::settings_v2::get_seeding_settings,
+            commands::settings_v2::get_cloud_settings,
+            commands::settings_v2::update_behavior_settings,
+            commands::settings_v2::update_download_settings,
+            commands::settings_v2::update_connection_settings,
+            commands::settings_v2::update_speed_settings,
+            commands::settings_v2::update_bittorrent_settings,
+            commands::settings_v2::update_queue_settings,
+            commands::settings_v2::update_seeding_settings,
+            commands::settings_v2::update_cloud_settings,
             // Cloud commands
             commands::cloud::get_cloud_status,
             commands::cloud::cloud_add_torrent,
@@ -144,11 +162,21 @@ pub fn run() {
             commands::system::get_app_info,
             commands::system::get_logs,
             commands::system::clear_logs,
-            // Search commands
+            // Search commands (Torbox API)
             commands::search::search_torrents,
             commands::search::save_search_history,
             commands::search::get_search_history,
             commands::search::clear_search_history,
+            // Search commands (Aggregator)
+            commands::search_aggregator::aggregator_search,
+            commands::search_aggregator::get_search_plugins,
+            // Speed graph commands
+            commands::speed_graph::get_speed_graph,
+            commands::speed_graph::get_torrent_speed_graph,
+            // Queue commands
+            commands::queue::get_queue_positions,
+            commands::queue::force_start_torrent,
+            commands::queue::set_torrent_priority,
         ])
         .on_window_event(move |_window, event| {
             if let tauri::WindowEvent::Destroyed = event {
