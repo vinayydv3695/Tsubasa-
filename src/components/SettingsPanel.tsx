@@ -1,5 +1,5 @@
 // Tsubasa — Settings Panel Component
-// Full settings UI with tabbed sections: General, Bandwidth, Cloud, Network, Appearance, About.
+// Full settings UI with tabbed sections.
 // Opens as a modal overlay triggered from the toolbar gear icon.
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -21,19 +21,26 @@ import {
   Palette,
   Sun,
   Moon,
+  ListOrdered,
+  Shield,
+  Search,
 } from "lucide-react";
 import { open as dialogOpen } from "@tauri-apps/plugin-dialog";
 import { getSettings, updateSettings, getAppInfo } from "@/lib/tauri";
-import type { AppSettings, AppInfo, DownloadPolicy } from "@/types";
+import type { AppSettings, AppInfo, DownloadPolicy, QueueSettings, SeedingSettings, BitTorrentSettings } from "@/types";
 import { motion } from "framer-motion";
 import { useThemeStore, type Theme } from "@/stores/theme";
+import { useSettingsStore } from "@/stores/settingsV2";
 
 interface SettingsPanelProps { onClose: () => void; }
-type SettingsTab = "general" | "bandwidth" | "cloud" | "network" | "appearance" | "about";
+type SettingsTab = "general" | "bandwidth" | "cloud" | "network" | "appearance" | "about" | "queue" | "bittorrent" | "search_settings";
 
 const TABS: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
   { id: "general", label: "General", icon: <FolderOpen size={13} /> },
   { id: "bandwidth", label: "Bandwidth", icon: <Download size={13} /> },
+  { id: "bittorrent", label: "BitTorrent", icon: <Shield size={13} /> },
+  { id: "queue", label: "Queue & Seeding", icon: <ListOrdered size={13} /> },
+  { id: "search_settings", label: "Search", icon: <Search size={13} /> },
   { id: "cloud", label: "Cloud", icon: <Cloud size={13} /> },
   { id: "network", label: "Network", icon: <Wifi size={13} /> },
   { id: "appearance", label: "Appearance", icon: <Palette size={13} /> },
@@ -482,6 +489,211 @@ function NetworkTab({ settings, update }: { settings: AppSettings; update: (patc
   );
 }
 
+// ─── Queue & Seeding Tab ───────────────────────────────
+
+function QueueSeedingTab() {
+  const { settings, updateQueue, updateSeeding } = useSettingsStore();
+  if (!settings) return <p style={{ fontSize: 12, color: "var(--fg-3)" }}>Loading…</p>;
+  const q = settings.queue;
+  const s = settings.seeding;
+
+  const updateQ = (patch: Partial<QueueSettings>) => updateQueue({ ...q, ...patch });
+  const updateS = (patch: Partial<SeedingSettings>) => updateSeeding({ ...s, ...patch });
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div>
+        <SectionTitle>Active Limits</SectionTitle>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          <div>
+            <FieldLabel>Max Downloads</FieldLabel>
+            <StyledInput type="number" min={1} max={100} value={q.max_active_downloads} onChange={(e) => updateQ({ max_active_downloads: parseInt(e.target.value) || 5 })} />
+          </div>
+          <div>
+            <FieldLabel>Max Uploads</FieldLabel>
+            <StyledInput type="number" min={1} max={100} value={q.max_active_uploads} onChange={(e) => updateQ({ max_active_uploads: parseInt(e.target.value) || 5 })} />
+          </div>
+          <div>
+            <FieldLabel>Max Total</FieldLabel>
+            <StyledInput type="number" min={1} max={200} value={q.max_active_total} onChange={(e) => updateQ({ max_active_total: parseInt(e.target.value) || 10 })} />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <SectionTitle>Slow Torrent Detection</SectionTitle>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: 10, border: "1px solid var(--line)", background: "var(--overlay)", marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: "var(--fg)" }}>Exclude slow torrents from active count</div>
+            <div style={{ fontSize: 11, color: "var(--fg-3)", marginTop: 3 }}>Slow torrents won't consume download slots</div>
+          </div>
+          <ToggleSwitch checked={q.exclude_slow_from_count} onChange={(v) => updateQ({ exclude_slow_from_count: v })} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div>
+            <FieldLabel>DL Threshold (B/s)</FieldLabel>
+            <StyledInput type="number" min={0} value={q.slow_torrent_dl_threshold} onChange={(e) => updateQ({ slow_torrent_dl_threshold: parseInt(e.target.value) || 0 })} />
+          </div>
+          <div>
+            <FieldLabel>UL Threshold (B/s)</FieldLabel>
+            <StyledInput type="number" min={0} value={q.slow_torrent_ul_threshold} onChange={(e) => updateQ({ slow_torrent_ul_threshold: parseInt(e.target.value) || 0 })} />
+          </div>
+        </div>
+        <FieldHint>Torrents below both thresholds for the inactive period are considered slow.</FieldHint>
+      </div>
+
+      <div>
+        <SectionTitle>Seeding Limits</SectionTitle>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+          <div>
+            <FieldLabel>Global Ratio Limit</FieldLabel>
+            <StyledInput type="number" min={0} step={0.1} value={s.global_ratio_limit ?? ""} placeholder="Unlimited" onChange={(e) => updateS({ global_ratio_limit: e.target.value ? parseFloat(e.target.value) : null })} />
+          </div>
+          <div>
+            <FieldLabel>Time Limit (minutes)</FieldLabel>
+            <StyledInput type="number" min={0} value={s.global_time_limit_mins ?? ""} placeholder="Unlimited" onChange={(e) => updateS({ global_time_limit_mins: e.target.value ? parseInt(e.target.value) : null })} />
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <FieldLabel>Action When Limit Reached</FieldLabel>
+          <div style={{ display: "flex", gap: 8 }}>
+            {(["Pause", "Remove", "RemoveWithFiles"] as const).map((action) => (
+              <button
+                key={action}
+                onClick={() => updateS({ action_on_limit: action })}
+                style={{
+                  flex: 1, padding: "8px 12px", borderRadius: 8, border: "1px solid",
+                  borderColor: s.action_on_limit === action ? "var(--accent)" : "var(--line)",
+                  background: s.action_on_limit === action ? "var(--accent-soft)" : "var(--overlay)",
+                  color: s.action_on_limit === action ? "var(--accent)" : "var(--fg-2)",
+                  fontSize: 11, fontWeight: 500, cursor: "pointer", transition: "all 150ms ease",
+                }}
+              >
+                {action === "RemoveWithFiles" ? "Remove + Files" : action}
+              </button>
+            ))}
+          </div>
+        </div>
+        <FieldHint>Leave blank for unlimited. Per-torrent overrides take priority.</FieldHint>
+      </div>
+    </div>
+  );
+}
+
+// ─── BitTorrent Tab ────────────────────────────────────
+
+function BitTorrentTab() {
+  const { settings, updateBitTorrent } = useSettingsStore();
+  if (!settings) return <p style={{ fontSize: 12, color: "var(--fg-3)" }}>Loading…</p>;
+  const bt = settings.bittorrent;
+
+  const update = (patch: Partial<BitTorrentSettings>) => updateBitTorrent({ ...bt, ...patch });
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div>
+        <SectionTitle>Protocol Features</SectionTitle>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {[
+            { key: "enable_dht" as const, label: "DHT (Distributed Hash Table)", desc: "Decentralized peer discovery without trackers" },
+            { key: "enable_pex" as const, label: "PEX (Peer Exchange)", desc: "Share peer lists between connected clients" },
+            { key: "enable_lsd" as const, label: "LSD (Local Service Discovery)", desc: "Find peers on the same local network" },
+            { key: "anonymous_mode" as const, label: "Anonymous Mode", desc: "Hide client name and version from peers" },
+            { key: "sequential_download_default" as const, label: "Sequential Download Default", desc: "Download pieces in order (useful for media preview)" },
+          ].map(({ key, label, desc }) => (
+            <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: 10, border: "1px solid var(--line)", background: "var(--overlay)" }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 500, color: "var(--fg)" }}>{label}</div>
+                <div style={{ fontSize: 11, color: "var(--fg-3)", marginTop: 3 }}>{desc}</div>
+              </div>
+              <ToggleSwitch checked={bt[key]} onChange={(v) => update({ [key]: v })} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <SectionTitle>Encryption</SectionTitle>
+        <div style={{ display: "flex", gap: 8 }}>
+          {(["Forced", "Preferred", "Disabled"] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => update({ encryption: mode })}
+              style={{
+                flex: 1, padding: "10px 14px", borderRadius: 8, border: "1px solid",
+                borderColor: bt.encryption === mode ? "var(--accent)" : "var(--line)",
+                background: bt.encryption === mode ? "var(--accent-soft)" : "var(--overlay)",
+                color: bt.encryption === mode ? "var(--accent)" : "var(--fg-2)",
+                fontSize: 12, fontWeight: 500, cursor: "pointer", transition: "all 150ms ease",
+              }}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
+        <FieldHint>Forced: only encrypted connections. Preferred: try encryption first. Disabled: no encryption.</FieldHint>
+      </div>
+    </div>
+  );
+}
+
+// ─── Search Settings Tab ───────────────────────────────
+
+function SearchSettingsTab() {
+  const { settings } = useSettingsStore();
+  if (!settings) return <p style={{ fontSize: 12, color: "var(--fg-3)" }}>Loading…</p>;
+  const search = settings.search;
+
+  const availablePlugins = [
+    { id: "piratebay", name: "PirateBay", desc: "General purpose, large database" },
+    { id: "yts", name: "YTS", desc: "Movies only, high quality" },
+    { id: "leet", name: "1337x", desc: "General purpose with categories" },
+    { id: "nyaa", name: "Nyaa.si", desc: "Anime, manga, music" },
+    { id: "torrentgalaxy", name: "TorrentGalaxy", desc: "General purpose" },
+  ];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div>
+        <SectionTitle>Search Plugins</SectionTitle>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {availablePlugins.map(({ id, name, desc }) => (
+            <div key={id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: 10, border: "1px solid var(--line)", background: "var(--overlay)" }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 500, color: "var(--fg)" }}>{name}</div>
+                <div style={{ fontSize: 11, color: "var(--fg-3)", marginTop: 3 }}>{desc}</div>
+              </div>
+              <div style={{
+                padding: "3px 8px", borderRadius: 6, fontSize: 10, fontWeight: 600,
+                background: search.enabled_plugins.includes(id) ? "var(--green-soft)" : "var(--muted)",
+                color: search.enabled_plugins.includes(id) ? "var(--green)" : "var(--fg-3)",
+              }}>
+                {search.enabled_plugins.includes(id) ? "Enabled" : "Disabled"}
+              </div>
+            </div>
+          ))}
+        </div>
+        <FieldHint>Plugins search torrent sites directly — no API keys required.</FieldHint>
+      </div>
+
+      <div>
+        <SectionTitle>Search Options</SectionTitle>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div>
+            <FieldLabel>Max Results Per Plugin</FieldLabel>
+            <StyledInput type="number" min={5} max={100} value={search.max_results_per_plugin} readOnly />
+          </div>
+          <div>
+            <FieldLabel>Timeout (seconds)</FieldLabel>
+            <StyledInput type="number" min={5} max={120} value={search.search_timeout_secs} readOnly />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── About Tab ─────────────────────────────────────────
 
 function formatUptime(seconds: number): string {
@@ -537,11 +749,14 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
   const [saved, setSaved] = useState(false);
   const [dirty, setDirty] = useState(false);
 
+  // Load v2 settings on mount
+  const settingsV2 = useSettingsStore();
   useEffect(() => {
     Promise.all([getSettings(), getAppInfo()])
       .then(([s, info]) => { setSettings(s); setAppInfo(info); })
       .catch((err) => console.error("Failed to load settings:", err))
       .finally(() => setLoading(false));
+    settingsV2.load();
   }, []);
 
   useEffect(() => {
@@ -687,6 +902,9 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 {tab === "general" && <GeneralTab settings={settings} update={update} onBrowse={handleBrowseDir} />}
                 {tab === "bandwidth" && <BandwidthTab settings={settings} update={update} />}
                 {tab === "cloud" && <CloudTab settings={settings} update={update} />}
+                {tab === "bittorrent" && <BitTorrentTab />}
+                {tab === "queue" && <QueueSeedingTab />}
+                {tab === "search_settings" && <SearchSettingsTab />}
                 {tab === "network" && <NetworkTab settings={settings} update={update} />}
                 {tab === "appearance" && <AppearanceTab />}
                 {tab === "about" && <AboutTab appInfo={appInfo} />}
