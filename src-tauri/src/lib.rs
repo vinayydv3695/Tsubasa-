@@ -12,6 +12,7 @@ pub mod cloud;
 pub mod bandwidth;
 pub mod search;
 pub mod logging;
+pub mod settings;
 pub mod crypto;
 pub mod retry;
 pub mod updater;
@@ -88,8 +89,15 @@ pub fn run() {
     // Create search engine
     let search_engine = SearchEngine::new(cloud_manager.clone(), db.clone());
 
+    // Create grouped settings manager (v2)
+    let settings_manager = Arc::new(
+        settings::SettingsManager::new(db.clone())
+            .expect("Failed to initialize settings manager")
+    );
+    tracing::info!("Settings manager initialized (v2 grouped schema)");
+
     // Create application state
-    let state = Arc::new(AppState::new(db, log_buffer, cloud_manager, event_bus, orchestrator, search_engine));
+    let state = Arc::new(AppState::new(db, log_buffer, cloud_manager, event_bus, orchestrator, search_engine, settings_manager));
 
     // Clone state for the shutdown window event handler
     let shutdown_state = state.clone();

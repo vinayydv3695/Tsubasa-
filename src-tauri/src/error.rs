@@ -38,6 +38,9 @@ pub enum TsubasaError {
     #[error("Configuration error: {0}")]
     Config(String),
 
+    #[error("Settings error: {0}")]
+    Settings(String),
+
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 

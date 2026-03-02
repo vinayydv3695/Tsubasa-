@@ -2,7 +2,7 @@
 // Icon-first layout, collapsible sidebar, glow active indicator.
 // Categories section, bottom-anchored Settings + Stats.
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
   Download,
   CheckCircle,
@@ -27,7 +27,7 @@ import {
 import { useTorrentStore } from "@/stores/torrent";
 import { useUIStore } from "@/stores/ui";
 import { useSearchStore } from "@/stores/search";
-import { BUILT_IN_CATEGORIES, getCategoryForTorrent } from "@/stores/categories";
+import { BUILT_IN_CATEGORIES } from "@/stores/categories";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import "./Sidebar.css";
 
@@ -71,7 +71,6 @@ const catIcons: Record<string, React.ReactNode> = {
 export function Sidebar() {
   const filter = useTorrentStore((s) => s.filter);
   const setFilter = useTorrentStore((s) => s.setFilter);
-  const torrents = useTorrentStore((s) => s.torrents);
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
   const setDetailPanelOpen = useUIStore((s) => s.setDetailPanelOpen);
@@ -79,22 +78,6 @@ export function Sidebar() {
 
   const [showSettings, setShowSettings] = useState(false);
 
-  // Category counts
-  const torrentList = useMemo(() => Array.from(torrents.values()), [torrents]);
-  const categoryCounts = useMemo(() => {
-    const map: Record<string, number> = {};
-    let other = 0;
-    for (const t of torrentList) {
-      const cat = getCategoryForTorrent(t.name);
-      if (cat) map[cat.name] = (map[cat.name] ?? 0) + 1;
-      else other++;
-    }
-    map["Other"] = other;
-    return map;
-  }, [torrentList]);
-
-  // Check if any category has torrents — only show section if there's data
-  const hasCategoryData = torrentList.length > 0;
 
   const navItems = [
     { label: "All", value: "all", icon: <LayoutList size={18} strokeWidth={1.5} /> },
@@ -141,32 +124,26 @@ export function Sidebar() {
           ))}
 
           {/* Categories section — only when expanded and data exists */}
-          {!collapsed && hasCategoryData && (
+          {!collapsed && (
             <>
               <div className="sidebar__section-label">Categories</div>
-              {BUILT_IN_CATEGORIES.map((cat) => {
-                const count = categoryCounts[cat.name] ?? 0;
-                if (count === 0) return null;
-                return (
-                  <NavItem
-                    key={cat.name}
-                    label={cat.name}
-                    icon={catIcons[cat.name] ?? <FolderOpen size={16} strokeWidth={1.5} />}
-                    active={filter === `cat:${cat.name}`}
-                    collapsed={collapsed}
-                    onClick={() => setFilter(`cat:${cat.name}` as any)}
-                  />
-                );
-              })}
-              {(categoryCounts["Other"] ?? 0) > 0 && (
+              {BUILT_IN_CATEGORIES.map((cat) => (
                 <NavItem
-                  label="Other"
-                  icon={<FolderOpen size={16} strokeWidth={1.5} />}
-                  active={filter === "cat:Other"}
+                  key={cat.name}
+                  label={cat.name}
+                  icon={catIcons[cat.name] ?? <FolderOpen size={16} strokeWidth={1.5} />}
+                  active={filter === `cat:${cat.name}`}
                   collapsed={collapsed}
-                  onClick={() => setFilter("cat:Other" as any)}
+                  onClick={() => setFilter(`cat:${cat.name}` as any)}
                 />
-              )}
+              ))}
+              <NavItem
+                label="Other"
+                icon={<FolderOpen size={16} strokeWidth={1.5} />}
+                active={filter === "cat:Other"}
+                collapsed={collapsed}
+                onClick={() => setFilter("cat:Other" as any)}
+              />
             </>
           )}
 
@@ -191,7 +168,7 @@ export function Sidebar() {
             icon={<BarChart3 size={18} strokeWidth={1.5} />}
             active={false}
             collapsed={collapsed}
-            onClick={() => setDetailPanelOpen(true)}
+            onClick={() => { setDetailPanelOpen(true); useUIStore.getState().setDetailPanelTab('trackers'); }}
           />
           <NavItem
             label="Settings"

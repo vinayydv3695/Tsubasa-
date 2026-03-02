@@ -12,6 +12,7 @@ use crate::engine::TorrentEngine;
 use crate::events::EventBus;
 use crate::logging::ring_buffer::LogRingBuffer;
 use crate::search::SearchEngine;
+use crate::settings::SettingsManager;
 use crate::storage::database::Database;
 use crate::storage::session::SessionManager;
 
@@ -42,6 +43,9 @@ pub struct AppState {
     /// In-memory log ring buffer for the UI viewer.
     pub log_buffer: Arc<LogRingBuffer>,
 
+    /// Grouped settings manager (v2).
+    pub settings_manager: Arc<SettingsManager>,
+
     /// Timestamp when the app started.
     pub started_at: Instant,
 }
@@ -55,6 +59,7 @@ impl AppState {
         event_bus: EventBus,
         orchestrator: DownloadOrchestrator,
         search_engine: SearchEngine,
+        settings_manager: Arc<SettingsManager>,
     ) -> Self {
         Self {
             db,
@@ -65,6 +70,7 @@ impl AppState {
             orchestrator: Arc::new(orchestrator),
             search_engine,
             log_buffer,
+            settings_manager,
             started_at: Instant::now(),
         }
     }
